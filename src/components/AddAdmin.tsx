@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
-import { signUp, marcarPrimeiroAcessoConcluido, supabase } from '../lib/supabaseClient';
+import { signUp, marcarPrimeiroAcessoConcluido } from '../lib/supabaseClient';
 
 function generatePassword(length = 10): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
@@ -46,17 +46,9 @@ export default function AddAdmin({ onSuccess, onBack }: AddAdminProps) {
 
         setLoading(true);
 
-        const result = await signUp(email, password, nome);
+        const result = await signUp(email, password, nome, 1);
 
         if (result.success) {
-            if (result.userId) {
-                await supabase.from('perfis_usuario').upsert({
-                    id: result.userId,
-                    nome,
-                    perfil_id: 1,
-                    ativo: true,
-                });
-            }
             await marcarPrimeiroAcessoConcluido();
             setSuccess(true);
             setTimeout(() => {

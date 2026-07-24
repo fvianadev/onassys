@@ -28,7 +28,6 @@ async function reset() {
   console.log('Conectado. Limpando dados...\n');
 
   const tables = [
-    'planejamento_compras',
     'lancamentos_financeiros',
     'movimentacoes_produtos',
     'movimentacoes_materiais',

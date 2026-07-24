@@ -821,15 +821,12 @@ DECLARE
   count_usuarios INTEGER;
   perfil_inicial INTEGER;
 BEGIN
-  -- Conta quantos usuários já existem na tabela perfis_usuario
   SELECT COUNT(*) INTO count_usuarios FROM public.perfis_usuario;
-  
-  -- Se for o primeiro usuário, define como Admin (1). Caso contrário, Operador (3).
-  IF count_usuarios = 0 THEN
-    perfil_inicial := 1;
-  ELSE
-    perfil_inicial := 3;
-  END IF;
+
+  perfil_inicial := COALESCE(
+    (NEW.raw_user_meta_data->>'perfil_id')::INTEGER,
+    CASE WHEN count_usuarios = 0 THEN 1 ELSE 3 END
+  );
 
   INSERT INTO public.perfis_usuario (id, nome, perfil_id, ativo)
   VALUES (

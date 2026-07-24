@@ -31,9 +31,10 @@ export default function Usuarios({ store }: UsuariosProps) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [nome, setNome] = useState('');
-  const [perfilId, setPerfilId] = useState(1);
+  const [perfilId, setPerfilId] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ nome?: string; email?: string; senha?: string; perfil?: string }>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ user: UsuarioRow; isSelf: boolean } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [resetPassUser, setResetPassUser] = useState<UsuarioRow | null>(null);
@@ -88,19 +89,21 @@ export default function Usuarios({ store }: UsuariosProps) {
   const criarUsuario = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const errs: typeof fieldErrors = {};
+    if (!nome.trim()) errs.nome = 'Favor preencher o nome do usuário.';
+    if (!email.trim()) errs.email = 'Favor preencher o email.';
+    if (!senha || senha.length < 6) errs.senha = 'A senha deve ter pelo menos 6 caracteres.';
+    if (!perfilId || perfilId === 0) errs.perfil = 'Selecione um perfil de acesso.';
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
+    setFieldErrors({});
     setSaving(true);
     try {
       const { data, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
-        email, password: senha, email_confirm: true, user_metadata: { nome }
+        email, password: senha, email_confirm: true, user_metadata: { nome, perfil_id: perfilId }
       });
       if (signUpError) { setError(signUpError.message); setSaving(false); return; }
-      if (data.user) {
-        await supabase.from('perfis_usuario').upsert({
-          id: data.user.id, perfil_id: perfilId, ativo: true
-        });
-      }
       setShowModal(false);
-      setEmail(''); setSenha(''); setNome(''); setPerfilId(1);
+      setEmail(''); setSenha(''); setNome(''); setPerfilId(0);
       carregarUsuarios();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erro ao criar usuário');
@@ -163,12 +166,17 @@ export default function Usuarios({ store }: UsuariosProps) {
 
   const salvarEdicao = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editUser || !nome.trim()) return;
+    if (!editUser) return;
     setError('');
+    const errs: typeof fieldErrors = {};
+    if (!nome.trim()) errs.nome = 'Favor preencher o nome do usuário.';
+    if (!perfilId || perfilId === 0) errs.perfil = 'Selecione um perfil de acesso.';
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
+    setFieldErrors({});
     setSaving(true);
     try {
       await supabaseAdmin.auth.admin.updateUserById(editUser.id, { user_metadata: { nome: nome.trim() } });
-      await supabase.from('perfis_usuario').update({ nome: nome.trim(), perfil_id: perfilId }).eq('id', editUser.id);
+      await supabaseAdmin.from('perfis_usuario').update({ nome: nome.trim(), perfil_id: perfilId }).eq('id', editUser.id);
       setEditUser(null);
       setNome('');
       setPerfilId(1);
@@ -255,7 +263,7 @@ export default function Usuarios({ store }: UsuariosProps) {
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {store.hasPermission('usuarios.editar') && (
-                        <button onClick={() => { setEditUser(user); setNome(user.nome || ''); setEmail(user.email); setPerfilId(user.perfil_id); setError(''); }}
+                        <button onClick={() => { setEditUser(user); setNome(user.nome || ''); setEmail(user.email); setPerfilId(user.perfil_id); setError(''); setFieldErrors({}); }}
                           className="p-1.5 text-amber-600 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition"
                           title="Editar usuário">
                           <Pencil size={16} />
@@ -303,13 +311,15 @@ export default function Usuarios({ store }: UsuariosProps) {
             <form onSubmit={editUser ? salvarEdicao : criarUsuario} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#5c4a37] dark:text-amber-100 mb-1">Nome</label>
-                <input type="text" value={nome} onChange={e => setNome(e.target.value)} required
-                  className="w-full px-3 py-2 bg-[#f8f5ee] dark:bg-[#130b04] border border-[#ebdcc9] dark:border-[#2e1a0a] rounded-xl text-[#2e2315] dark:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <input type="text" value={nome} onChange={e => { setNome(e.target.value); setFieldErrors(prev => ({ ...prev, nome: undefined })); }}
+                  className={`w-full px-3 py-2 bg-[#f8f5ee] dark:bg-[#130b04] border rounded-xl text-[#2e2315] dark:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 ${fieldErrors.nome ? 'border-red-400 dark:border-red-600' : 'border-[#ebdcc9] dark:border-[#2e1a0a]'}`} />
+                {fieldErrors.nome && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.nome}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#5c4a37] dark:text-amber-100 mb-1">Email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required readOnly={!!editUser}
-                  className="w-full px-3 py-2 bg-[#f8f5ee] dark:bg-[#130b04] border border-[#ebdcc9] dark:border-[#2e1a0a] rounded-xl text-[#2e2315] dark:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 read-only:opacity-60 read-only:cursor-not-allowed" />
+                <input type="email" value={email} onChange={e => { setEmail(e.target.value); setFieldErrors(prev => ({ ...prev, email: undefined })); }} readOnly={!!editUser}
+                  className={`w-full px-3 py-2 bg-[#f8f5ee] dark:bg-[#130b04] border rounded-xl text-[#2e2315] dark:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 read-only:opacity-60 read-only:cursor-not-allowed ${fieldErrors.email ? 'border-red-400 dark:border-red-600' : 'border-[#ebdcc9] dark:border-[#2e1a0a]'}`} />
+                {fieldErrors.email && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.email}</p>}
               </div>
               {!editUser && (
                 <div>
@@ -320,16 +330,18 @@ export default function Usuarios({ store }: UsuariosProps) {
                       <RefreshCw size={10} /> Gerar
                     </button>
                   </div>
-                  <input type={showGenerated ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)} required minLength={6}
-                    className="w-full px-3 py-2 bg-[#f8f5ee] dark:bg-[#130b04] border border-[#ebdcc9] dark:border-[#2e1a0a] rounded-xl text-[#2e2315] dark:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <input type={showGenerated ? 'text' : 'password'} value={senha} onChange={e => { setSenha(e.target.value); setFieldErrors(prev => ({ ...prev, senha: undefined })); }}
+                    className={`w-full px-3 py-2 bg-[#f8f5ee] dark:bg-[#130b04] border rounded-xl text-[#2e2315] dark:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 ${fieldErrors.senha ? 'border-red-400 dark:border-red-600' : 'border-[#ebdcc9] dark:border-[#2e1a0a]'}`} />
+                  {fieldErrors.senha && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.senha}</p>}
                 </div>
               )}
               <div>
                 <label className="block text-sm font-medium text-[#5c4a37] dark:text-amber-100 mb-1">Perfil de Acesso</label>
-                <SelectSearch value={String(perfilId)} onChange={v => { if (editUser?.id !== store.currentUserId) setPerfilId(Number(v)); }} options={store.perfis.map(p => ({ value: String(p.id), label: `${p.nome} — ${p.descricao}` }))} placeholder="Perfil de acesso" />
+                <SelectSearch value={perfilId ? String(perfilId) : ''} onChange={v => { if (editUser?.id !== store.currentUserId) { setPerfilId(Number(v)); setFieldErrors(prev => ({ ...prev, perfil: undefined })); } }} options={store.perfis.map(p => ({ value: String(p.id), label: `${p.nome} — ${p.descricao}` }))} placeholder="Selecione um perfil..." />
+                {fieldErrors.perfil && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.perfil}</p>}
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => { setShowModal(false); setEditUser(null); setNome(''); setEmail(''); setSenha(''); setPerfilId(1); setError(''); }}
+                <button type="button" onClick={() => { setShowModal(false); setEditUser(null); setNome(''); setEmail(''); setSenha(''); setPerfilId(0); setError(''); setFieldErrors({}); }}
                   className="flex-1 py-2 px-4 border border-[#ebdcc9] dark:border-[#2e1a0a] rounded-xl text-[#5c4a37] dark:text-amber-100 font-medium hover:bg-[#f8f5ee] dark:hover:bg-[#130b04] transition">
                   Cancelar
                 </button>

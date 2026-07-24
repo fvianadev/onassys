@@ -69,14 +69,15 @@ export async function isAuthenticated(): Promise<boolean> {
     }
 }
 
-export async function signUp(email: string, password: string, nome: string): Promise<{ success: boolean; needsConfirmation?: boolean; userId?: string; error?: string }> {
+export async function signUp(email: string, password: string, nome: string, perfilId?: number): Promise<{ success: boolean; needsConfirmation?: boolean; userId?: string; error?: string }> {
     try {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
-                    nome
+                    nome,
+                    ...(perfilId ? { perfil_id: perfilId } : {})
                 }
             }
         });
