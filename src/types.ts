@@ -80,18 +80,6 @@ export interface LancamentoFinanceiro {
   criado_em?: string;
 }
 
-export interface PlanejamentoCompra {
-  id: number;
-  material_id: string;
-  quantidade_sugerida: number;
-  unidade_id?: number;
-  data_sugerida?: string;
-  status: 'pendente' | 'aprovado' | 'comprado' | 'cancelado';
-  motivo?: string;
-  consumo_medio_diario?: number;
-  dias_ate_minimo?: number;
-}
-
 export interface Material {
   id: string;
   nome: string;

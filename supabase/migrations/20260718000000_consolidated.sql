@@ -504,19 +504,6 @@ CREATE TABLE IF NOT EXISTS public.lancamentos_financeiros (
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS public.planejamento_compras (
-    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    material_id VARCHAR(255) NOT NULL REFERENCES public.materiais(id) ON DELETE CASCADE,
-    quantidade_sugerida DECIMAL(12, 4) NOT NULL,
-    unidade_id INTEGER REFERENCES public.unidades(id),
-    data_sugerida DATE,
-    status VARCHAR(20) NOT NULL DEFAULT 'pendente' CHECK (status IN ('pendente', 'aprovado', 'comprado', 'cancelado')),
-    motivo TEXT,
-    consumo_medio_diario DECIMAL(12, 6),
-    dias_ate_minimo INTEGER,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- =====================================================
 -- ÍNDICES
 -- =====================================================
@@ -530,7 +517,6 @@ CREATE INDEX IF NOT EXISTS idx_itens_pedido ON public.itens_pedido(pedido_id);
 CREATE INDEX IF NOT EXISTS idx_itens_produto ON public.itens_pedido(produto_id);
 CREATE INDEX IF NOT EXISTS idx_lancamentos_data ON public.lancamentos_financeiros(data_lancamento);
 CREATE INDEX IF NOT EXISTS idx_lancamentos_categoria ON public.lancamentos_financeiros(categoria_id);
-CREATE INDEX IF NOT EXISTS idx_planejamento_status ON public.planejamento_compras(status);
 CREATE INDEX IF NOT EXISTS idx_movimentacoes_materiais_tipo ON public.movimentacoes_materiais(tipo_id);
 CREATE INDEX IF NOT EXISTS idx_movimentacoes_produtos_tipo ON public.movimentacoes_produtos(tipo_id);
 CREATE INDEX IF NOT EXISTS idx_mov_prod_usuario ON public.movimentacoes_produtos(usuario_id);
@@ -680,7 +666,6 @@ ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedidos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.itens_pedido ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lancamentos_financeiros ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.planejamento_compras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.unidades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categorias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.status_pedido ENABLE ROW LEVEL SECURITY;
@@ -742,7 +727,7 @@ DO $$ DECLARE tbl TEXT; BEGIN
     FOR tbl IN SELECT unnest(ARRAY[
         'materiais','produtos','fichas_tecnicas','estoque_produtos',
         'movimentacoes_produtos','movimentacoes_materiais','clientes',
-        'pedidos','itens_pedido','planejamento_compras'
+        'pedidos','itens_pedido'
     ]) LOOP
         EXECUTE format('DROP POLICY IF EXISTS "%s_select" ON public.%I', tbl, tbl);
         EXECUTE format('CREATE POLICY "%s_select" ON public.%I FOR SELECT TO authenticated USING (true)', tbl, tbl);
@@ -825,25 +810,6 @@ SELECT
 FROM public.lancamentos_financeiros
 GROUP BY ano, mes
 ORDER BY ano DESC, mes DESC;
-
-CREATE OR REPLACE VIEW public.consumo_materiais AS
-SELECT
-    m.id AS material_id,
-    m.nome AS material_nome,
-    COALESCE(AVG(mov.quantidade), 0) AS consumo_medio_diario,
-    CASE WHEN m.quantidade_atual > 0 AND COALESCE(AVG(mov.quantidade), 0) > 0
-        THEN (m.quantidade_atual / AVG(mov.quantidade))::INTEGER
-        ELSE NULL
-    END AS dias_ate_minimo,
-    m.quantidade_atual,
-    m.quantidade_minima,
-    CASE WHEN m.quantidade_atual <= m.quantidade_minima THEN true ELSE false END AS precisa_comprar
-FROM public.materiais m
-LEFT JOIN public.movimentacoes_materiais mov
-    ON mov.material_id = m.id
-    AND mov.tipo_id = (SELECT id FROM public.tipos_movimentacao WHERE nome = 'Saída Produção')
-    AND mov.criado_em >= CURRENT_DATE - INTERVAL '30 days'
-GROUP BY m.id;
 
 -- =====================================================
 -- TRIGGERS PARA AUTOCRIAÇÃO DE PERFIL (auth.users -> public.perfis_usuario)

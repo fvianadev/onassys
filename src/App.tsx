@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Toaster, toast } from 'sonner';
 import { MiniFactoryStore } from './lib/store';
 import Dashboard from './components/Dashboard';
 import Materiais from './components/Materiais';
@@ -198,6 +199,27 @@ export default function App() {
   }, [currentTab]);
 
   // =====================================================
+  // EFFECTS - Alertas de estoque baixo (toast na inicialização)
+  // =====================================================
+  const stockAlertShownRef = useRef(false);
+
+  useEffect(() => {
+    if (store && !store.loading && !stockAlertShownRef.current) {
+      stockAlertShownRef.current = true;
+      const criticos = store.materiais.filter(m => m.quantidade_atual < m.quantidade_minima);
+      if (criticos.length > 0) {
+        const lista = criticos
+          .map(m => `• ${m.nome} — estoque: ${m.quantidade_atual}${store.unidadeSigla(m.unidade_id)} (mínimo: ${m.quantidade_minima}${store.unidadeSigla(m.unidade_id)})`)
+          .join('\n');
+        toast.error(`${criticos.length} insumo${criticos.length > 1 ? 's' : ''} abaixo do mínimo`, {
+          description: lista,
+          duration: 8000,
+        });
+      }
+    }
+  }, [store?.loading]);
+
+  // =====================================================
   // HANDLERS
   // =====================================================
   const handleLoginSuccess = () => {
@@ -286,6 +308,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] dark:bg-[#0c0703] flex flex-col md:flex-row relative text-[#2e2315] dark:text-[#f7f4f0] transition-colors duration-200">
+      <Toaster position="top-right" richColors closeButton />
       
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden md:flex flex-col md:w-56 lg:w-64 bg-[#f8f5ee] dark:bg-[#0c0703] text-[#2e2315] dark:text-amber-50 h-screen sticky top-0 flex-shrink-0 md:p-4 lg:p-5 border-r border-[#ebdcc9] dark:border-[#1e1005] transition-colors duration-200">

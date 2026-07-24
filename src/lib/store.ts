@@ -1,4 +1,4 @@
-import { Material, Produto, FichaTecnicaItem, EstoqueProduto, Cliente, Pedido, ItemPedido, MovimentacaoMaterial, MovimentacaoProduto, Unidade, Categoria, StatusPedido, TipoMovimentacao, TipoCliente, Fornecedor, Permissao, Perfil, CategoriaFinanceiro, LancamentoFinanceiro, PlanejamentoCompra, PerfilUsuario, PerfilPermissao, DadosEmpresa } from '../types';
+import { Material, Produto, FichaTecnicaItem, EstoqueProduto, Cliente, Pedido, ItemPedido, MovimentacaoMaterial, MovimentacaoProduto, Unidade, Categoria, StatusPedido, TipoMovimentacao, TipoCliente, Fornecedor, Permissao, Perfil, CategoriaFinanceiro, LancamentoFinanceiro, PerfilUsuario, PerfilPermissao, DadosEmpresa } from '../types';
 import { calcularCustoProducao, normalizarQuantidade, formatarNumero } from './calculos';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { deleteProdutoImage, isStorageUrl } from './imageUpload';
@@ -31,7 +31,6 @@ export class MiniFactoryStore {
   categoriasFinanceiro: CategoriaFinanceiro[] = [];
 
   lancamentos: LancamentoFinanceiro[] = [];
-  planejamentoCompras: PlanejamentoCompra[] = [];
   perfisUsuarios: PerfilUsuario[] = [];
 
   currentUserId: string | null = null;
@@ -188,7 +187,6 @@ export class MiniFactoryStore {
       this.movMateriais = get('movMateriais', []);
       this.movProdutos = get('movProdutos', []);
       this.lancamentos = get('lancamentos', []);
-      this.planejamentoCompras = get('planejamentoCompras', []);
       this.perfisUsuarios = get('perfisUsuarios', []);
       this.unidades = get('unidades', []);
       this.categorias = get('categorias', []);
@@ -324,7 +322,7 @@ export class MiniFactoryStore {
   async loadFromSupabase() {
     if (!isSupabaseConfigured()) return false;
     try {
-      const [m, p, f, e, c, pd, ip, mm, mp, l, pl, pu] = await Promise.all([
+      const [m, p, f, e, c, pd, ip, mm, mp, l, pu] = await Promise.all([
         this.fetchAll<Material>('materiais'),
         this.fetchAll<Produto>('produtos'),
         this.fetchAll<FichaTecnicaItem>('fichas_tecnicas'),
@@ -335,13 +333,12 @@ export class MiniFactoryStore {
         this.fetchAll<MovimentacaoMaterial>('movimentacoes_materiais', 'criado_em DESC'),
         this.fetchAll<MovimentacaoProduto>('movimentacoes_produtos', 'criado_em DESC'),
         this.fetchAll<LancamentoFinanceiro>('lancamentos_financeiros', 'data_lancamento DESC'),
-        this.fetchAll<PlanejamentoCompra>('planejamento_compras'),
         this.fetchAll<PerfilUsuario>('perfis_usuario'),
       ]);
       this.materiais = m; this.produtos = p; this.fichas = f;
       this.estoqueProdutos = e; this.clientes = c; this.pedidos = pd;
       this.itensPedido = ip; this.movMateriais = mm; this.movProdutos = mp;
-      this.lancamentos = l; this.planejamentoCompras = pl; this.perfisUsuarios = pu;
+      this.lancamentos = l; this.perfisUsuarios = pu;
       return true;
     } catch { return false; }
   }
@@ -1563,12 +1560,5 @@ export class MiniFactoryStore {
     this.saveToLocalStorage();
     this.notify();
     return { success: true };
-  }
-
-  // ================================================
-  // PLANEJAMENTO DE COMPRAS
-  // ================================================
-  async gerarSugestoesCompra() {
-    return await this.fetchAll<PlanejamentoCompra>('planejamento_compras', 'data_sugerida ASC');
   }
 }

@@ -3,7 +3,6 @@
 -- Lookups, RBAC, usuários e config preservados
 -- ============================================
 
-DELETE FROM planejamento_compras;
 DELETE FROM lancamentos_financeiros;
 DELETE FROM movimentacoes_materiais;
 DELETE FROM movimentacoes_produtos;
