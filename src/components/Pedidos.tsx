@@ -154,7 +154,7 @@ export default function Pedidos({ store, onUpdate, forceOpenNewOrderRef, onNavig
 
     setEditingPedidoId(pedidoId);
     setClienteId(pedido.cliente_id);
-    setDataEntrega(pedido.data_entrega_prevista);
+    setDataEntrega(pedido.data_entrega_prevista.slice(0, 16));
     setObservacoes(pedido.observacoes || '');
     setStatusId(pedido.status_id);
     setCategoriaReceitaId(pedido.categoria_receita_id || 0);
