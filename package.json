@@ -13,9 +13,9 @@
     "db:migrate": "node aplicar_migrations.mjs",
     "db:reset": "node supabase/reset-data.mjs",
     "db:clear": "node supabase/clear-movements.mjs",
+    "db:seed:materiais": "node run-seed.mjs seed_materiais_base.sql",
     "db:seed:test": "node run-seed.mjs seed_test.sql",
-    "db:seed:dashboard": "node run-seed.mjs seed_simulacao_dashboard.sql",
-    "db:seed:cleanup": "node run-seed.mjs seed_cleanup.sql",
+    "db:seed:cleanup": "node run-seed.mjs seed_cleanup_test.sql",
     "db:del": "node run-seed.mjs del_db.sql"
   },
   "dependencies": {

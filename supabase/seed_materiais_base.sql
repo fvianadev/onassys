@@ -1,13 +1,14 @@
 -- =====================================================
--- SEED: Ingredientes base para nova instalação
--- Idempotente: só insere se a tabela estiver vazia
+-- SEED: Ingredientes base (opcional)
+-- Rodar apenas se quiser popular a lista base
+-- Execute: db:seed:materiais
 -- =====================================================
 
-INSERT INTO public.materiais (id, nome, unidade_id)
+INSERT INTO materiais (id, nome, unidade_id)
 SELECT
   'mat_' || substr(md5(random()::text), 1, 7),
   v.nome,
-  (SELECT id FROM public.unidades WHERE sigla = v.sigla)
+  (SELECT id FROM unidades WHERE sigla = v.sigla)
 FROM (VALUES
   ('Farinha de trigo', 'kg'),
   ('Farinha de rosca', 'kg'),
@@ -55,4 +56,6 @@ FROM (VALUES
   ('Caldo de galinha (tablete/pó)', 'g'),
   ('Essência de baunilha', 'mL')
 ) AS v(nome, sigla)
-WHERE NOT EXISTS (SELECT 1 FROM public.materiais LIMIT 1);
+WHERE NOT EXISTS (SELECT 1 FROM materiais WHERE nome NOT LIKE '[TESTE]%' LIMIT 1);
+
+SELECT 'BASE DE MATERIAIS INSERIDA' AS status;
