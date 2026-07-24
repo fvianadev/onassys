@@ -33,7 +33,6 @@ async function clear() {
     ['DELETE FROM itens_pedido', 'itens_pedido'],
     ['DELETE FROM lancamentos_financeiros', 'lancamentos_financeiros'],
     ['DELETE FROM pedidos', 'pedidos'],
-    ['DELETE FROM planejamento_compras', 'planejamento_compras'],
     ['UPDATE estoque_produtos SET quantidade_disponivel = 0, data_atualizacao = NOW()', 'estoque_produtos (zerado)'],
   ];
 
