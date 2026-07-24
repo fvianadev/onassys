@@ -303,7 +303,7 @@ export default function App() {
                 <p className="text-[8px] lg:text-[10px] text-amber-700 dark:text-amber-400 font-mono tracking-wider font-semibold truncate">{store?.dadosEmpresa?.slogan || 'ESTOQUE & PEDIDOS'}</p>
                 <div className="mt-2 space-y-0.5">
                   <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 w-fit">
-                    <Shield size={12} /> {store.perfilNome(store.perfisUsuarios.find(u => u.id === store.currentUserId)?.perfil_id ?? 3)}: {store.perfisUsuarios.find(u => u.id === store.currentUserId)?.nome || currentUser?.user_metadata?.nome || 'Usuário'}
+                    <Shield size={12} /> {store.perfisUsuarios.find(u => u.id === store.currentUserId)?.nome || currentUser?.user_metadata?.nome || 'Usuário'}
                   </span>
                   <p className="text-[10px] text-[#5c4a37]/60 dark:text-amber-100/40 font-mono truncate leading-tight">
                     {currentUser?.email || ''}
