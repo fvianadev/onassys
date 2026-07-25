@@ -41,6 +41,7 @@ export default function Clientes({ store, onUpdate }: ClientesProps) {
   const [editId, setEditId] = useState<string | null>(null);
   
   const [nome, setNome] = useState('');
+  const [nomeError, setNomeError] = useState(false);
   const [tipoId, setTipoId] = useState<number>(1);
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
@@ -118,7 +119,7 @@ export default function Clientes({ store, onUpdate }: ClientesProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) {
-      alert('Favor preencher o nome do cliente.');
+      setNomeError(true);
       return;
     }
 
@@ -394,11 +395,13 @@ export default function Clientes({ store, onUpdate }: ClientesProps) {
                 <input 
                   type="text" 
                   value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  onChange={(e) => { setNome(e.target.value); setNomeError(false); }}
                   placeholder="Ex: Lanchonete Central d'Oeste, Maria Helena"
                   className="w-full p-2 border border-amber-200 dark:border-[#2d1e0d] rounded-lg text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 placeholder:text-gray-400 dark:placeholder:text-amber-200/20"
-                  required
                 />
+                {nomeError && (
+                  <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Preencha o nome do cliente.</p>
+                )}
               </div>
 
               <div className="space-y-1">

@@ -87,11 +87,18 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
   const [inboundCriarDespesa, setInboundCriarDespesa] = useState(false);
   const [inboundFormaPagamento, setInboundFormaPagamento] = useState<string>('');
   const [inboundPagamentoError, setInboundPagamentoError] = useState(false);
+  const [inboundQtdError, setInboundQtdError] = useState(false);
+  const [inboundCustoUnitarioError, setInboundCustoUnitarioError] = useState(false);
+  const [nomeError, setNomeError] = useState(false);
 
   const [adjustMaterialId, setAdjustMaterialId] = useState<string | null>(null);
   const [adjustNovoSaldo, setAdjustNovoSaldo] = useState<number>(0);
   const [adjustQtdMinima, setAdjustQtdMinima] = useState<number>(0);
   const [adjustObservacao, setAdjustObservacao] = useState('');
+  const [adjustNovoSaldoError, setAdjustNovoSaldoError] = useState(false);
+  const [adjustMinimaError, setAdjustMinimaError] = useState(false);
+  const [qtdInicialError, setQtdInicialError] = useState(false);
+  const [qtdMinimaError, setQtdMinimaError] = useState(false);
 
   const opcoesPagamento = formasPagamentoSelectOptions;
 
@@ -210,7 +217,15 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
   const handleSaveMaterial = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) {
-      alert('Favor preencher o nome do ingrediente.');
+      setNomeError(true);
+      return;
+    }
+    if (Number(quantidadeAtual) < 0) {
+      setQtdInicialError(true);
+      return;
+    }
+    if (Number(quantidadeMinima) < 0) {
+      setQtdMinimaError(true);
       return;
     }
 
@@ -292,11 +307,11 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
   const handleSaveInbound = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inboundQtd <= 0) {
-      alert('A quantidade deve ser maior do que zero.');
+      setInboundQtdError(true);
       return;
     }
     if (inboundCustoUnitario < 0) {
-      alert('O custo unitário não pode ser menor do que zero.');
+      setInboundCustoUnitarioError(true);
       return;
     }
     if (inboundCriarDespesa && !inboundFormaPagamento) {
@@ -812,11 +827,13 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                 <input 
                   type="text" 
                   value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  onChange={(e) => { setNome(e.target.value); setNomeError(false); }}
                   placeholder="Ex: Farinha de trigo especial, Leite condensado"
                   className="w-full h-9 px-3 border border-amber-200 dark:border-[#2d1e0d] rounded-lg focus:outline-none focus:border-amber-400 text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 placeholder:text-gray-400 dark:placeholder:text-amber-200/20"
-                  required
                 />
+                {nomeError && (
+                  <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Preencha o nome do ingrediente.</p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -846,6 +863,7 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                 <input 
                   type="number" 
                   step="any"
+                  min="0"
                   value={custoUnitario}
                   onChange={(e) => setCustoUnitario(Number(e.target.value))}
                   {...useSmartArrowKeys(custoUnitario, setCustoUnitario)}
@@ -860,11 +878,15 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                     <input 
                       type="number" 
                       step="any"
+                      min="0"
                       value={quantidadeAtual}
-                      onChange={(e) => setQuantidadeAtual(Number(e.target.value))}
+                      onChange={(e) => { setQuantidadeAtual(Number(e.target.value)); setQtdInicialError(false); }}
                       {...useSmartArrowKeys(quantidadeAtual, setQuantidadeAtual)}
                       className="w-full h-9 px-3 border border-amber-200 dark:border-[#2d1e0d] rounded-lg focus:outline-none focus:border-amber-400 text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 font-mono"
                     />
+                    {qtdInicialError && (
+                      <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Qtd. inicial não pode ser &lt; 0.</p>
+                    )}
                   </div>
 
                   <div className="space-y-1">
@@ -872,11 +894,15 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                     <input 
                       type="number" 
                       step="any"
+                      min="0"
                       value={quantidadeMinima}
-                      onChange={(e) => setQuantidadeMinima(Number(e.target.value))}
+                      onChange={(e) => { setQuantidadeMinima(Number(e.target.value)); setQtdMinimaError(false); }}
                       {...useSmartArrowKeys(quantidadeMinima, setQuantidadeMinima)}
                       className="w-full h-9 px-3 border border-amber-200 dark:border-[#2d1e0d] rounded-lg focus:outline-none focus:border-amber-400 text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 font-mono"
                     />
+                    {qtdMinimaError && (
+                      <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Qtd. mínima não pode ser &lt; 0.</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -932,16 +958,18 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                       step="any"
                       min="0.001"
                       value={inboundQtd}
-                      onChange={(e) => setInboundQtd(Number(e.target.value))}
+                      onChange={(e) => { setInboundQtd(Number(e.target.value)); setInboundQtdError(false); }}
                       {...useSmartArrowKeys(inboundQtd, setInboundQtd, 0.001)}
                       className="w-full p-2 focus:outline-none font-mono text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 placeholder:text-gray-400 dark:placeholder:text-amber-200/20"
-                      required
                       placeholder="Ex: 10, 2.5"
                     />
                     <span className="bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-[10px] font-bold text-amber-900 dark:text-amber-200 font-mono whitespace-nowrap">
                       {store.unidadeSigla(store.materiais.find(m => m.id === inboundMaterialId)?.unidade_id || 0)}
                     </span>
                   </div>
+                  {inboundQtdError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Qtd. deve ser &gt; 0.</p>
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -951,12 +979,14 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                     step="any"
                     min="0"
                     value={inboundCustoUnitario === 0 ? '' : inboundCustoUnitario}
-                    onChange={(e) => setInboundCustoUnitario(Number(e.target.value))}
+                    onChange={(e) => { setInboundCustoUnitario(Number(e.target.value)); setInboundCustoUnitarioError(false); }}
                     {...useSmartArrowKeys(inboundCustoUnitario, setInboundCustoUnitario, 0)}
                     className="w-full p-2 border border-amber-200 dark:border-[#2d1e0d] focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] rounded-lg text-amber-950 dark:text-amber-100 font-mono text-xs placeholder:text-gray-400"
-                    required
                     placeholder="Ex: 5.50"
                   />
+                  {inboundCustoUnitarioError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Custo unitário não pode ser &lt; 0.</p>
+                  )}
                   <span className="text-[9px] text-gray-400 dark:text-amber-100/30 mt-0.5 block font-sans">
                     Preço de custo anterior: {(store.materiais.find(m => m.id === inboundMaterialId)?.custo_unitario || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                   </span>
@@ -1164,24 +1194,30 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase text-gray-500">Novo Saldo *</label>
                   <div className="flex items-center border border-amber-200 dark:border-[#2d1e0d] rounded-lg overflow-hidden bg-white dark:bg-[#1c140c]">
-                    <input type="number" step="any" min="0" value={adjustNovoSaldo} onChange={e => setAdjustNovoSaldo(Number(e.target.value))}
+                    <input type="number" step="any" min="0" value={adjustNovoSaldo} onChange={e => { setAdjustNovoSaldo(Number(e.target.value)); setAdjustNovoSaldoError(false); }}
                       {...useSmartArrowKeys(adjustNovoSaldo, setAdjustNovoSaldo, 0)}
                       className="w-full p-2 focus:outline-none font-mono text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100" />
                     <span className="bg-amber-50 dark:bg-amber-950/35 px-2 py-2 text-[10px] font-bold text-amber-950 dark:text-amber-200 font-mono">
                       {store.unidadeSigla(mat.unidade_id)}
                     </span>
                   </div>
+                  {adjustNovoSaldoError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Saldo não pode ser &lt; 0.</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase text-gray-500">Qtd. Mínima *</label>
                   <div className="flex items-center border border-amber-200 dark:border-[#2d1e0d] rounded-lg overflow-hidden bg-white dark:bg-[#1c140c]">
-                    <input type="number" step="any" min="0" value={adjustQtdMinima} onChange={e => setAdjustQtdMinima(Number(e.target.value))}
+                    <input type="number" step="any" min="0" value={adjustQtdMinima} onChange={e => { setAdjustQtdMinima(Number(e.target.value)); setAdjustMinimaError(false); }}
                       {...useSmartArrowKeys(adjustQtdMinima, setAdjustQtdMinima, 0)}
                       className="w-full p-2 focus:outline-none font-mono text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100" />
                     <span className="bg-amber-50 dark:bg-amber-950/35 px-2 py-2 text-[10px] font-bold text-amber-950 dark:text-amber-200 font-mono">
                       {store.unidadeSigla(mat.unidade_id)}
                     </span>
                   </div>
+                  {adjustMinimaError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Qtd. mínima não pode ser &lt; 0.</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase text-gray-500">Observação (opcional)</label>
@@ -1195,6 +1231,8 @@ export default function Materiais({ store, onUpdate }: MateriaisProps) {
                   Voltar
                 </button>
                 <button onClick={async () => {
+                  if (adjustNovoSaldo < 0) { setAdjustNovoSaldoError(true); return; }
+                  if (adjustQtdMinima < 0) { setAdjustMinimaError(true); return; }
                   await store.ajustarEstoqueMaterial(adjustMaterialId, adjustNovoSaldo, adjustObservacao, adjustQtdMinima);
                   setAdjustMaterialId(null);
                   onUpdate();

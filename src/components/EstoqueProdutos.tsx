@@ -58,6 +58,9 @@ export default function EstoqueProdutos({ store, onUpdate }: EstoqueProdutosProp
   const [loteProdutoId, setLoteProdutoId] = useState('');
   const [loteFromProduct, setLoteFromProduct] = useState(false);
   const [loteQtd, setLoteQtd] = useState<number>(12);
+  const [loteQtdError, setLoteQtdError] = useState(false);
+  const [adjustSaldoError, setAdjustSaldoError] = useState(false);
+  const [adjustMinimaError, setAdjustMinimaError] = useState(false);
   const [loteObs, setLoteObs] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -205,7 +208,7 @@ export default function EstoqueProdutos({ store, onUpdate }: EstoqueProdutosProp
     e.preventDefault();
     setErrorMessage(null);
     if (loteQtd <= 0) {
-      alert('Selecione uma quantidade válida para produzir.');
+      setLoteQtdError(true);
       return;
     }
 
@@ -240,7 +243,11 @@ export default function EstoqueProdutos({ store, onUpdate }: EstoqueProdutosProp
   const handleSaveAdjustStock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (adjustStockNovoSaldo < 0) {
-      alert('O saldo não pode ser negativo.');
+      setAdjustSaldoError(true);
+      return;
+    }
+    if (adjustStockQtdMinima < 0) {
+      setAdjustMinimaError(true);
       return;
     }
     setErrorMessage(null);
@@ -716,17 +723,19 @@ export default function EstoqueProdutos({ store, onUpdate }: EstoqueProdutosProp
                   <div className="flex items-center border border-amber-200 dark:border-[#2d1e0d] rounded-lg overflow-hidden bg-white dark:bg-[#1c140c]">
                     <input 
                       type="number" 
-                      min="1"
                       value={loteQtd}
-                      onChange={(e) => { const v = Number(e.target.value); setLoteQtd(v); verificarEstoque(loteProdutoId, v); }}
+                      onChange={(e) => { const v = Number(e.target.value); setLoteQtd(v); setLoteQtdError(false); verificarEstoque(loteProdutoId, v); }}
                       {...useSmartArrowKeys(loteQtd, setLoteQtd, 1)}
                       className="w-full p-2 focus:outline-none font-mono text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100"
-                      required
+                      placeholder="0"
                     />
                     <span className="bg-amber-50 dark:bg-amber-950/30 px-2.5 py-2 text-[10px] font-bold text-amber-900 dark:text-amber-200 font-mono whitespace-nowrap">
                       {store.unidadeSigla(store.produtos.find(p => p.id === loteProdutoId)?.unidade_producao_id || 0)}
                     </span>
                   </div>
+                  {loteQtdError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Qtd deve ser &gt; 0 para produzir.</p>
+                  )}
                 </div>
 
                 <div className="space-y-1 col-span-1">
@@ -845,17 +854,19 @@ export default function EstoqueProdutos({ store, onUpdate }: EstoqueProdutosProp
                   <div className="flex items-center border border-amber-200 dark:border-[#2d1e0d] rounded-lg overflow-hidden bg-white dark:bg-[#1c140c]">
                     <input 
                       type="number" 
-                      min="0"
                       value={adjustStockNovoSaldo}
-                      onChange={(e) => setAdjustStockNovoSaldo(Number(e.target.value))}
+                      onChange={(e) => { setAdjustStockNovoSaldo(Number(e.target.value)); setAdjustSaldoError(false); }}
                       {...useSmartArrowKeys(adjustStockNovoSaldo, setAdjustStockNovoSaldo, 0)}
                       className="w-full p-2 focus:outline-none font-mono text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100"
-                      required
+                      placeholder="0"
                     />
                     <span className="bg-amber-50 dark:bg-amber-950/35 px-2 py-2 text-[10px] font-bold text-amber-950 dark:text-amber-200 font-mono">
                       {unidadeNome(adjustStockProdutoId)}
                     </span>
                   </div>
+                  {adjustSaldoError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Saldo não pode ser &lt; 0.</p>
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -863,17 +874,19 @@ export default function EstoqueProdutos({ store, onUpdate }: EstoqueProdutosProp
                   <div className="flex items-center border border-amber-200 dark:border-[#2d1e0d] rounded-lg overflow-hidden bg-white dark:bg-[#1c140c]">
                     <input 
                       type="number" 
-                      min="0"
                       value={adjustStockQtdMinima}
-                      onChange={(e) => setAdjustStockQtdMinima(Number(e.target.value))}
+                      onChange={(e) => { setAdjustStockQtdMinima(Number(e.target.value)); setAdjustMinimaError(false); }}
                       {...useSmartArrowKeys(adjustStockQtdMinima, setAdjustStockQtdMinima, 0)}
                       className="w-full p-2 focus:outline-none font-mono text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100"
-                      required
+                      placeholder="0"
                     />
                     <span className="bg-amber-50 dark:bg-amber-950/35 px-2 py-2 text-[10px] font-bold text-amber-950 dark:text-amber-200 font-mono">
                       {unidadeNome(adjustStockProdutoId)}
                     </span>
                   </div>
+                  {adjustMinimaError && (
+                    <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Qtd. mínima não pode ser &lt; 0.</p>
+                  )}
                 </div>
               </div>
 

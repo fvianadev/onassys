@@ -57,6 +57,7 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
   }, [isFormOpen]);
   
   const [nome, setNome] = useState('');
+  const [nomeError, setNomeError] = useState(false);
   const [categoriaId, setCategoriaId] = useState<number>(2);
   const [descricao, setDescricao] = useState('');
   const [unidadeProducaoId, setUnidadeProducaoId] = useState<number>(5);
@@ -304,7 +305,7 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) {
-      setCustomAlert({ title: 'Campos obrigatórios', message: 'Favor preencher o nome do produto e a unidade de produção.' });
+      setNomeError(true);
       return;
     }
 
@@ -748,9 +749,12 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-amber-900 dark:text-amber-100 font-medium">Nome *</label>
-                        <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} data-help="produtos-nome"
+                        <input type="text" value={nome} onChange={(e) => { setNome(e.target.value); setNomeError(false); }} data-help="produtos-nome"
                           placeholder="Ex: Coxinha de Frango"
-                          className="w-full p-2 border border-amber-200 dark:border-[#2d1e0d] rounded-lg focus:outline-none focus:border-amber-400 text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 placeholder:text-gray-400" required />
+                          className="w-full p-2 border border-amber-200 dark:border-[#2d1e0d] rounded-lg focus:outline-none focus:border-amber-400 text-xs bg-white dark:bg-[#1c140c] text-amber-950 dark:text-amber-100 placeholder:text-gray-400" />
+                        {nomeError && (
+                          <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">Preencha o nome do produto.</p>
+                        )}
                       </div>
                       <div className="space-y-1" data-help="produtos-categoria">
                         <label className="text-amber-900 dark:text-amber-100 font-medium">Categoria *</label>
