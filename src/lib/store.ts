@@ -1496,6 +1496,7 @@ export class MiniFactoryStore {
     categoriaId: number;
     valorPago?: number;
     dataLancamento?: string;
+    desconto?: number;
   }): Promise<{ success: boolean; error?: string }> {
     this.error = null;
     this.errorType = null;
@@ -1538,7 +1539,8 @@ export class MiniFactoryStore {
       promises.push(this.supabaseInsert('movimentacoes_produtos', mov as unknown as Record<string, unknown>));
     }
 
-    const total = params.itens.reduce((s, i) => s + i.quantidade * i.precoUnitario, 0);
+    const subtotal = params.itens.reduce((s, i) => s + i.quantidade * i.precoUnitario, 0);
+    const total = Math.max(0, subtotal - (params.desconto || 0));
     const descricao = params.itens.map(i => {
       const prod = this.produtos.find(p => p.id === i.produtoId);
       return `${i.quantidade}x ${prod?.nome || i.produtoId}`;

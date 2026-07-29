@@ -254,7 +254,9 @@ export default function Caixa({ store, onUpdate, preselectedPedidoId, onClearPre
       return { ...e, produtoNome: prod?.nome || e.produto_id, precoVenda: prod?.preco_venda || 0 };
     })
     .sort((a, b) => a.produtoNome.localeCompare(b.produtoNome)), [store.estoqueProdutos, store.produtos, vdCarrinho]);
-  const vdTotal = vdCarrinho.reduce((s, i) => s + i.quantidade * i.precoUnitario, 0);
+  const [vdDesconto, setVdDesconto] = useState(0);
+  const vdSubtotal = vdCarrinho.reduce((s, i) => s + i.quantidade * i.precoUnitario, 0);
+  const vdTotal = Math.max(0, vdSubtotal - vdDesconto);
   const vdCategoriasReceita = store.categoriasFinanceiro.filter(c => c.tipo === 'receita');
 
   // Comprovante
@@ -438,6 +440,7 @@ export default function Caixa({ store, onUpdate, preselectedPedidoId, onClearPre
       formaPagamento: vdForma,
       categoriaId: vdCategoriaId,
       dataLancamento: dataLancamento,
+      desconto: vdDesconto,
     });
 
     if (!result.success) {
@@ -450,7 +453,7 @@ export default function Caixa({ store, onUpdate, preselectedPedidoId, onClearPre
       descricao: `Venda balcão: ${vdCarrinho.map(i => {
         const prod = store.produtos.find(p => p.id === i.produtoId);
         return `${i.quantidade}x ${prod?.nome || i.produtoId}`;
-      }).join(', ')}`,
+      }).join(', ')}${vdDesconto > 0 ? ` (Desconto: ${brl(vdDesconto)})` : ''}`,
       valor: vdTotal,
       formaPagamento: vdForma,
       dataLancamento: dataLancamento,
@@ -609,15 +612,21 @@ export default function Caixa({ store, onUpdate, preselectedPedidoId, onClearPre
                       return (
                         <div key={item.produtoId} className="flex items-center gap-1 bg-white dark:bg-[#1c140c] rounded-lg p-2 border border-amber-100 dark:border-[#2d1e0d]">
                           <span className="flex-1 text-[10px] font-medium truncate">{prod?.nome || item.produtoId}</span>
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => {
-                              setVdCarrinho(prev => prev.map((c, i) => i === idx ? { ...c, quantidade: Math.max(1, c.quantidade - 1) } : c));
-                            }} className="text-[10px] w-5 h-5 rounded bg-gray-100 dark:bg-[#2d1e0d] font-bold cursor-pointer">−</button>
-                            <span className="text-[10px] font-mono font-bold w-6 text-center">{item.quantidade}</span>
-                            <button onClick={() => {
-                              const estoqueQtd = estoque?.quantidade_disponivel || 0;
-                              setVdCarrinho(prev => prev.map((c, i) => i === idx ? { ...c, quantidade: Math.min(estoqueQtd, c.quantidade + 1) } : c));
-                            }} className="text-[10px] w-5 h-5 rounded bg-gray-100 dark:bg-[#2d1e0d] font-bold cursor-pointer">+</button>
+                          <div className="flex items-center border border-amber-200 rounded-md bg-white dark:bg-[#1c140c]">
+                            <input type="number" min="0.01" step="0.01"
+                              value={item.quantidade}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (val > 0) {
+                                  const estoqueQtd = estoque?.quantidade_disponivel || 0;
+                                  setVdCarrinho(prev => prev.map((c, i) => i === idx ? { ...c, quantidade: Math.min(estoqueQtd, val) } : c));
+                                }
+                              }}
+                              className="w-14 h-7 px-1 focus:outline-none font-mono text-[10px] text-center bg-transparent"
+                            />
+                            <span className="bg-amber-100 px-1 h-7 flex items-center text-[8px] text-amber-900 font-bold font-mono border-l border-amber-200 rounded-r-md">
+                              {store.unidadeSigla(prod?.unidade_producao_id || 0)}
+                            </span>
                           </div>
                           <span className="text-[10px] font-mono font-bold w-16 text-right">{brl(item.quantidade * item.precoUnitario)}</span>
                           <button onClick={() => setVdCarrinho(prev => prev.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 cursor-pointer ml-1">
@@ -654,12 +663,22 @@ export default function Caixa({ store, onUpdate, preselectedPedidoId, onClearPre
                 </div>
               </div>
 
-              {/* Total + Confirmar */}
-              <div className="flex items-center justify-between pt-2 border-t border-amber-100 dark:border-[#2d1e0d]">
-                <span className="text-xs font-bold">Total: <span className="font-mono text-base">{brl(vdTotal)}</span></span>
-                <button onClick={() => { handleVendaDireta(); setActiveForm(null); }}
+              {/* Subtotal + Desconto + Total + Confirmar */}
+              <div className="flex items-center gap-3 pt-2 border-t border-amber-100 dark:border-[#2d1e0d]">
+                <span className="text-[10px] text-gray-500 whitespace-nowrap">Subtotal <span className="text-gray-900 dark:text-amber-100 font-semibold font-mono">{brl(vdSubtotal)}</span></span>
+                <div className="flex items-center gap-1">
+                  <label className="text-[10px] text-gray-500 whitespace-nowrap">Desconto R$</label>
+                  <input
+                    type="number" inputMode="decimal" min="0" step="0.01"
+                    value={vdDesconto}
+                    onChange={(e) => setVdDesconto(Math.max(0, Number(e.target.value)))}
+                    className="w-16 h-7 border border-gray-200 dark:border-[#2d1e0d] rounded-lg px-1.5 text-[10px] text-right font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
+                  />
+                </div>
+                <span className="text-[10px] font-bold whitespace-nowrap">Total <span className="font-mono text-sm">{brl(vdTotal)}</span></span>
+                <button onClick={() => { handleVendaDireta(); setActiveForm(null); setVdDesconto(0); }}
                   disabled={vdCarrinho.length === 0}
-                  className="flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl text-xs font-bold border transition bg-amber-600 hover:bg-amber-500 text-white border-amber-600 shadow-md disabled:opacity-40 disabled:pointer-events-none cursor-pointer">
+                  className="ml-auto flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl text-xs font-bold border transition bg-amber-600 hover:bg-amber-500 text-white border-amber-600 shadow-md disabled:opacity-40 disabled:pointer-events-none cursor-pointer whitespace-nowrap">
                   <ShoppingBag size={14} /> Confirmar Venda
                 </button>
               </div>

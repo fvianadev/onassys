@@ -1090,10 +1090,10 @@ export default function Pedidos({ store, onUpdate, forceOpenNewOrderRef, onNavig
                               <td className="px-2 py-1.5 border-b border-amber-50">
                                 <div className="flex items-center border border-amber-200 rounded-md bg-white">
                                   <input
-                                    type="number" min="1"
+                                    type="number" min="0.01" step="0.01"
                                     value={item.quantidade_solicitada}
                                     onChange={(e) => handleUpdateItemRow(idx, { quantidade_solicitada: Number(e.target.value) })}
-                                    {...useSmartArrowKeys(item.quantidade_solicitada, (v) => handleUpdateItemRow(idx, { quantidade_solicitada: v }), 1)}
+                                    {...useSmartArrowKeys(item.quantidade_solicitada, (v) => handleUpdateItemRow(idx, { quantidade_solicitada: v }), 0.01)}
                                     className="w-full h-9 px-2 focus:outline-none font-mono text-xs text-center bg-transparent"
                                     required
                                   />
@@ -1149,10 +1149,10 @@ export default function Pedidos({ store, onUpdate, forceOpenNewOrderRef, onNavig
 
                           <label className="text-[10px] text-gray-400 font-semibold">Qtd</label>
                           <div className="flex items-center border border-amber-200 rounded-md bg-white">
-                            <input type="number" min="1"
+                            <input type="number" min="0.01" step="0.01"
                               value={item.quantidade_solicitada}
                               onChange={(e) => handleUpdateItemRow(idx, { quantidade_solicitada: Number(e.target.value) })}
-                              {...useSmartArrowKeys(item.quantidade_solicitada, (v) => handleUpdateItemRow(idx, { quantidade_solicitada: v }), 1)}
+                              {...useSmartArrowKeys(item.quantidade_solicitada, (v) => handleUpdateItemRow(idx, { quantidade_solicitada: v }), 0.01)}
                               className="w-full h-9 px-2 focus:outline-none font-mono text-xs text-center" required
                             />
                             <span className="bg-amber-100 px-1.5 h-9 flex items-center text-[9px] text-amber-900 font-bold font-mono border-l border-amber-200 rounded-r-md shrink-0">
