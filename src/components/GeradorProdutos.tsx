@@ -182,6 +182,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       .filter(Boolean)
       .join(', ');
 
+    const precoVendaCalculado = Number((totalCustoProd * (1 + 100 / 100)).toFixed(2));
     const produtoResult = await store.addProduto({
       nome: produtoNome.trim(),
       categoria_id: store.categoriasFinanceiro[0]?.id || 1,
@@ -191,7 +192,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       custo_producao_calculado: totalCustoProd,
       ativo: true,
       margem_lucro: 100,
-      preco_venda: Number((totalCustoProd * 2).toFixed(2).replace('.', ',')),
+      preco_venda: precoVendaCalculado,
     });
 
     if (!produtoResult) { setErros({ geral: 'Erro ao criar produto.' }); return; }
