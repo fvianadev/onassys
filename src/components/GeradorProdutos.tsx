@@ -415,7 +415,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                   type="number" min="1" step="1"
                   value={uniMedida}
                   onChange={e => setUniMedida(Number(e.target.value))}
-                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
                 />
               </div>
               <div>
