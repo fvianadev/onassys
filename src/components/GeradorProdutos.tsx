@@ -190,8 +190,8 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       tempo_producao_minutos: 0,
       custo_producao_calculado: totalCustoProd,
       ativo: true,
-      margem_lucro: 0,
-      preco_venda: 0,
+      margem_lucro: 100,
+      preco_venda: Number((totalCustoProd * 2).toFixed(2).replace('.', ',')),
     });
 
     if (!produtoResult) { setErros({ geral: 'Erro ao criar produto.' }); return; }
