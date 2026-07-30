@@ -427,7 +427,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <div className="col-span-1">UNI</div>
                 <div className="col-span-2 text-right">VL UNI</div>
                 <div className="col-span-2 text-right">VL TOTAL</div>
-                <div className="col-span-1"></div>
+                <div className="col-span-1 text-center">Ações</div>
               </div>
 
               {/* Rows */}
