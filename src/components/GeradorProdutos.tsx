@@ -292,7 +292,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               <td class="right">R$ ${d.vlUniTotal.toFixed(2)}</td>
             </tr>
           `).join('')}
-          <tr class="total"><td>T. CUST. PROD.</td><td></td><td class="right">R$ ${totalCustoProd.toFixed(2)}</td></tr>
+          <tr class="total"><td>custo por Unidade de Medida</td><td></td><td class="right">R$ ${totalCustoProd.toFixed(2)}</td></tr>
         </table>
       </body>
       </html>
@@ -517,7 +517,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
 
               {/* Total */}
               <div className="grid grid-cols-10 gap-2 items-center pt-2 border-t border-amber-100 dark:border-[#2d1e0d]">
-                <div className="col-span-4 text-[10px] font-bold text-amber-900 dark:text-amber-200">T. CUST. PROD.</div>
+                <div className="col-span-4 text-[10px] font-bold text-amber-900 dark:text-amber-200">custo por Unidade de Medida</div>
                 <div className="col-span-3"></div>
                 <div className="col-span-3 text-[10px] font-mono font-bold text-right text-amber-900 dark:text-amber-200">
                   R$ {totalCustoProd.toFixed(2)}
