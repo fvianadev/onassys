@@ -3,6 +3,7 @@ import { MiniFactoryStore } from '../lib/store';
 import { calcularDivisor, escalarReceita, normalizarQuantidade } from '../lib/calculos';
 import SelectSearch from './SelectSearch';
 import { ArrowLeft, Plus, Trash2, FileText, Save, X, Copy, Package } from 'lucide-react';
+import { useSmartArrowKeys } from '../lib/hooks/useSmartArrowKeys';
 
 const DRAFT_KEY = 'gerador-produto-draft';
 
@@ -471,8 +472,9 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     <div className="col-span-2">
                       <input
                         type="number" step="0.001" min="0" inputMode="decimal"
-                        value={ing.qtdRaw}
+                        value={ing.qtdTotal}
                         onChange={e => handleIngredienteChange(idx, 'qtdTotal', e.target.value)}
+                        {...useSmartArrowKeys(ing.qtdTotal, (v) => handleIngredienteChange(idx, 'qtdTotal', v), 0)}
                         className="w-full h-8 border border-amber-200 dark:border-[#2d1e0d] rounded px-2 text-[10px] font-mono text-right focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
                       />
                     </div>
