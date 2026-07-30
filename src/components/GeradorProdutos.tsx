@@ -171,6 +171,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
     if (!produtoNome.trim()) novosErros.produtoNome = 'Preencha o nome do produto.';
     if (rende <= 0) novosErros.rende = 'O rendimento deve ser maior que 0.';
     if (!unidadeId) novosErros.unidadeId = 'Selecione a unidade do produto.';
+    if (uniMedida <= 0) novosErros.uniMedida = 'O divisor deve ser maior que 0.';
     const validos = ingredientes.filter(i => i.materialId && i.qtdTotal > 0);
     if (validos.length === 0) novosErros.ingredientes = 'Preencha pelo menos 1 ingrediente com quantidade maior que 0.';
     if (Object.keys(novosErros).length > 0) { setErros(novosErros); return; }
@@ -414,9 +415,10 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <input
                   type="number" min="1" step="1"
                   value={uniMedida}
-                  onChange={e => setUniMedida(Number(e.target.value))}
-                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
+                  onChange={e => { setUniMedida(Number(e.target.value)); setErros(er => ({ ...er, uniMedida: '' })); }}
+                  className={`w-full h-9 border rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] ${erros.uniMedida ? 'border-red-400 dark:border-red-600' : 'border-amber-200 dark:border-[#2d1e0d]'}`}
                 />
+                {erros.uniMedida && <p className="text-[10px] text-red-500 mt-1">{erros.uniMedida}</p>}
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">QUOCIENTE</label>
