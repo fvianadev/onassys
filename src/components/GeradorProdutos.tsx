@@ -9,6 +9,7 @@ const DRAFT_KEY = 'gerador-produto-draft';
 interface IngredienteLinha {
   materialId: string;
   qtdTotal: number;
+  qtdRaw: string;
   unidadeId: number;
 }
 
@@ -32,13 +33,14 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
   const [rende, setRende] = useState(0);
   const [uniMedida, setUniMedida] = useState(1);
   const [ingredientes, setIngredientes] = useState<IngredienteLinha[]>([
-    { materialId: '', qtdTotal: 0, unidadeId: 1 },
+    { materialId: '', qtdTotal: 0, qtdRaw: '', unidadeId: 1 },
   ]);
   const [showRestorePrompt, setShowRestorePrompt] = useState(false);
   const [draftData, setDraftData] = useState<any>(null);
   const [abaAtiva, setAbaAtiva] = useState<'criar' | 'gerados'>('criar');
   const [produtoEditandoId, setProdutoEditandoId] = useState<string | null>(null);
   const [showConfirmExcluir, setShowConfirmExcluir] = useState<string | null>(null);
+  const [erros, setErros] = useState<Record<string, string>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Carregar rascunho ao montar
@@ -73,8 +75,12 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       setProdutoNome(draftData.produtoNome || '');
       setUnidadeId(draftData.unidadeId || 5);
       setRende(draftData.rende || 0);
-      setUniMedida(draftData.uniMedida || 100);
-      setIngredientes(draftData.ingredientes || [{ materialId: '', qtdTotal: 0, unidadeId: 1 }]);
+      setUniMedida(draftData.uniMedida || 1);
+      const ings = (draftData.ingredientes || []).map((i: any) => ({
+        ...i,
+        qtdRaw: i.qtdRaw ?? String(i.qtdTotal ?? ''),
+      }));
+      setIngredientes(ings.length > 0 ? ings : [{ materialId: '', qtdTotal: 0, qtdRaw: '', unidadeId: 1 }]);
     }
     setShowRestorePrompt(false);
   };
@@ -92,7 +98,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
   }, [store.unidades, unidadeId]);
 
   const handleAddIngrediente = () => {
-    setIngredientes([...ingredientes, { materialId: '', qtdTotal: 0, unidadeId: 1 }]);
+    setIngredientes([...ingredientes, { materialId: '', qtdTotal: 0, qtdRaw: '', unidadeId: 1 }]);
   };
 
   const handleRemoveIngrediente = (idx: number) => {
@@ -104,6 +110,10 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
     if (field === 'materialId') {
       const mat = store.materiais.find(m => m.id === value);
       next[idx] = { ...next[idx], materialId: value as string, unidadeId: mat?.unidade_id || 1 };
+    } else if (field === 'qtdTotal') {
+      const raw = String(value);
+      const num = Number(raw.replace(',', '.'));
+      next[idx] = { ...next[idx], qtdRaw: raw, qtdTotal: isNaN(num) ? 0 : Math.max(0, num) };
     } else {
       next[idx] = { ...next[idx], [field]: value };
     }
@@ -157,11 +167,14 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
   );
 
   const handleSalvar = async () => {
-    if (!produtoNome.trim()) { alert('Preencha o nome do produto.'); return; }
-    if (rende <= 0) { alert('O rendimento deve ser maior que 0.'); return; }
-    if (!unidadeId) { alert('Selecione a unidade do produto.'); return; }
+    const novosErros: Record<string, string> = {};
+    if (!produtoNome.trim()) novosErros.produtoNome = 'Preencha o nome do produto.';
+    if (rende <= 0) novosErros.rende = 'O rendimento deve ser maior que 0.';
+    if (!unidadeId) novosErros.unidadeId = 'Selecione a unidade do produto.';
     const validos = ingredientes.filter(i => i.materialId && i.qtdTotal > 0);
-    if (validos.length === 0) { alert('Preencha pelo menos 1 ingrediente com quantidade maior que 0.'); return; }
+    if (validos.length === 0) novosErros.ingredientes = 'Preencha pelo menos 1 ingrediente com quantidade maior que 0.';
+    if (Object.keys(novosErros).length > 0) { setErros(novosErros); return; }
+    setErros({});
 
     const nomesIngredientes = validos
       .map(v => store.materiais.find(m => m.id === v.materialId)?.nome)
@@ -180,7 +193,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       preco_venda: 0,
     });
 
-    if (!produtoResult) { alert('Erro ao criar produto.'); return; }
+    if (!produtoResult) { setErros({ geral: 'Erro ao criar produto.' }); return; }
 
     for (const ing of validos) {
       const qtdPorUnidade = divisor > 0 ? (normalizarQuantidade(ing.qtdTotal, ing.unidadeId, store.materiais.find(m => m.id === ing.materialId)?.unidade_id || ing.unidadeId, store.unidades)) / divisor : 0;
@@ -192,7 +205,6 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       });
     }
 
-    alert(`Produto "${produtoNome}" e ficha técnica criados com sucesso!`);
     localStorage.removeItem(DRAFT_KEY);
     onUpdate();
     onBack();
@@ -221,13 +233,15 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
     const fichasDoProduto = store.fichas.filter(f => f.produto_id === produtoId);
     const novosIngredientes: IngredienteLinha[] = fichasDoProduto.map(f => {
       const mat = store.materiais.find(m => m.id === f.material_id);
+      const qtd = f.quantidade_necessaria;
       return {
         materialId: f.material_id,
-        qtdTotal: f.quantidade_necessaria, // valor por unidade (já dividido)
+        qtdTotal: qtd,
+        qtdRaw: String(qtd),
         unidadeId: mat?.unidade_id || f.unidade_id,
       };
     });
-    setIngredientes(novosIngredientes.length > 0 ? novosIngredientes : [{ materialId: '', qtdTotal: 0, unidadeId: 1 }]);
+    setIngredientes(novosIngredientes.length > 0 ? novosIngredientes : [{ materialId: '', qtdTotal: 0, qtdRaw: '', unidadeId: 1 }]);
     setProdutoNome('');
     setProdutoEditandoId(null);
     setAbaAtiva('criar');
@@ -367,30 +381,33 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <input
                   type="text"
                   value={produtoNome}
-                  onChange={e => setProdutoNome(e.target.value)}
+                  onChange={e => { setProdutoNome(e.target.value); setErros(e => ({ ...e, produtoNome: '' })); }}
                   placeholder="Nome do produto"
-                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
+                  className={`w-full h-9 border rounded-lg px-3 text-xs focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] ${erros.produtoNome ? 'border-red-400 dark:border-red-600' : 'border-amber-200 dark:border-[#2d1e0d]'}`}
                 />
+                {erros.produtoNome && <p className="text-[10px] text-red-500 mt-1">{erros.produtoNome}</p>}
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">Rende (total)</label>
                 <input
                   type="number" min="1" step="1"
                   value={rende || ''}
-                  onChange={e => setRende(Number(e.target.value))}
+                  onChange={e => { setRende(Number(e.target.value)); setErros(e => ({ ...e, rende: '' })); }}
                   placeholder="Ex: 100"
-                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
+                  className={`w-full h-9 border rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${erros.rende ? 'border-red-400 dark:border-red-600' : 'border-amber-200 dark:border-[#2d1e0d]'}`}
                 />
+                {erros.rende && <p className="text-[10px] text-red-500 mt-1">{erros.rende}</p>}
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">Unidade</label>
                 <select
                   value={unidadeId}
-                  onChange={e => { setUnidadeId(Number(e.target.value)); setUniMedida(UNIDADES_PRODUTO.find(u => u.value === Number(e.target.value))?.value === 5 ? 1 : UNIDADES_PRODUTO.find(u => u.value === Number(e.target.value))?.value === 8 ? 100 : UNIDADES_PRODUTO.find(u => u.value === Number(e.target.value))?.value === 9 ? 12 : 50); }}
-                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
+                  onChange={e => { setUnidadeId(Number(e.target.value)); setUniMedida(UNIDADES_PRODUTO.find(u => u.value === Number(e.target.value))?.value === 5 ? 1 : UNIDADES_PRODUTO.find(u => u.value === Number(e.target.value))?.value === 8 ? 100 : UNIDADES_PRODUTO.find(u => u.value === Number(e.target.value))?.value === 9 ? 12 : 50); setErros(er => ({ ...er, unidadeId: '' })); }}
+                  className={`w-full h-9 border rounded-lg px-3 text-xs focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] ${erros.unidadeId ? 'border-red-400 dark:border-red-600' : 'border-amber-200 dark:border-[#2d1e0d]'}`}
                 >
                   {UNIDADES_PRODUTO.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
                 </select>
+                {erros.unidadeId && <p className="text-[10px] text-red-500 mt-1">{erros.unidadeId}</p>}
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">DIVISOR</label>
@@ -398,7 +415,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                   type="number" min="1" step="1"
                   value={uniMedida}
                   onChange={e => setUniMedida(Number(e.target.value))}
-                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
+                  className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
               <div>
@@ -418,6 +435,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <Plus size={12} /> Adicionar
               </button>
             </div>
+            {erros.ingredientes && <p className="text-[10px] text-red-500">{erros.ingredientes}</p>}
 
             <div className="space-y-2">
               {/* Header */}
@@ -449,9 +467,9 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     </div>
                     <div className="col-span-2">
                       <input
-                        type="number" step="0.001" min="0" inputMode="decimal"
-                        value={ing.qtdTotal}
-                        onChange={e => handleIngredienteChange(idx, 'qtdTotal', Math.max(0, Number(e.target.value) || 0))}
+                        type="text" inputMode="decimal"
+                        value={ing.qtdRaw}
+                        onChange={e => handleIngredienteChange(idx, 'qtdTotal', e.target.value)}
                         className="w-full h-8 border border-amber-200 dark:border-[#2d1e0d] rounded px-2 text-[10px] font-mono text-right focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
                       />
                     </div>
