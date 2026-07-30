@@ -303,7 +303,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
           ${dadosTabela.filter(d => d.materialId).map(d => `
             <tr>
               <td>${d.materialNome}</td>
-              <td class="right">${d.qtdPorUnidade.toFixed(4)} ${d.unidadeSigla}</td>
+              <td class="right">${d.qtdPorUnidade.toFixed(3)} ${d.unidadeSigla}</td>
               <td class="right">R$ ${d.vlUniTotal.toFixed(2).replace('.', ',')}</td>
             </tr>
           `).join('')}
@@ -527,7 +527,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <div key={idx} className="grid grid-cols-10 gap-2 items-center">
                   <div className="col-span-4 text-[10px] font-medium truncate">{d.materialNome}</div>
                   <div className="col-span-3 text-[10px] font-mono text-right">
-                    {d.qtdPorUnidade.toFixed(4)} <span className="text-gray-400">{d.unidadeSigla}</span>
+                    {d.qtdPorUnidade.toFixed(3)} <span className="text-gray-400">{d.unidadeSigla}</span>
                   </div>
                   <div className="col-span-3 text-[10px] font-mono text-right font-semibold">
                     R$ {d.vlUniTotal.toFixed(2).replace('.', ',')}
