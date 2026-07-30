@@ -201,7 +201,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       await store.addFichaTecnica({
         produto_id: produtoResult.id,
         material_id: ing.materialId,
-        quantidade_necessaria: Number(qtdPorUnidade.toFixed(4)),
+        quantidade_necessaria: Number(qtdPorUnidade.toFixed(3)),
         unidade_id: store.materiais.find(m => m.id === ing.materialId)?.unidade_id || ing.unidadeId,
       });
     }
