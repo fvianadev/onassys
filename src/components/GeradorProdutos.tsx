@@ -450,8 +450,8 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     <div className="col-span-2">
                       <input
                         type="number" step="0.001" min="0" inputMode="decimal"
-                        value={ing.qtdTotal || ''}
-                        onChange={e => handleIngredienteChange(idx, 'qtdTotal', Number(e.target.value))}
+                        value={ing.qtdTotal}
+                        onChange={e => handleIngredienteChange(idx, 'qtdTotal', Math.max(0, Number(e.target.value) || 0))}
                         className="w-full h-8 border border-amber-200 dark:border-[#2d1e0d] rounded px-2 text-[10px] font-mono text-right focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
                       />
                     </div>
