@@ -12,7 +12,7 @@ interface IngredienteLinha {
   unidadeId: number;
 }
 
-interface GeradorFichasProps {
+interface GeradorProdutosProps {
   store: MiniFactoryStore;
   onBack: () => void;
   onUpdate: () => void;
@@ -26,7 +26,7 @@ const UNIDADES_PRODUTO = [
   { value: 7, label: 'pc — Pacote' },
 ];
 
-export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: GeradorFichasProps) {
+export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProdutosProps) {
   const [produtoNome, setProdutoNome] = useState('');
   const [unidadeId, setUnidadeId] = useState(5);
   const [rende, setRende] = useState(0);

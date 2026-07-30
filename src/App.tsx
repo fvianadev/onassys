@@ -9,7 +9,7 @@ import Clientes from './components/Clientes';
 import Fornecedores from './components/Fornecedores';
 import Pedidos from './components/Pedidos';
 import Caixa from './components/Caixa';
-import GeradorFichasTecnicas from './components/GeradorFichasTecnicas';
+import GeradorProdutos from './components/GeradorProdutos';
 import SetupInstructions from './components/SetupInstructions';
 import Login from './components/Login';
 import AddAdmin from './components/AddAdmin';
@@ -349,7 +349,7 @@ export default function App() {
                 { id: 'relatorios', label: 'Relatórios', icon: <BarChart3 size={15} />, perm: 'financeiro.ver' },
                 { id: 'materiais', label: 'Insumos', icon: <Coins size={15} />, perm: 'materiais.ver' },
                 { id: 'produtos', label: 'Produtos', icon: <Layers size={16} />, perm: 'produtos.ver' },
-                { id: 'gerador', label: 'Gerador Fichas', icon: <FileText size={15} />, perm: 'produtos.ver' },
+                { id: 'gerador', label: 'Gerador Produtos', icon: <FileText size={15} />, perm: 'produtos.ver' },
                 { id: 'pedidos', label: 'Pedidos', icon: <ShoppingBag size={15} />, perm: 'pedidos.ver' },
                 { id: 'estoque', label: 'Estoque', icon: <Warehouse size={15} />, perm: 'estoque.ver' },
                 { id: 'clientes', label: 'Clientes', icon: <Users size={15} />, perm: 'clientes.ver' },
@@ -574,7 +574,7 @@ export default function App() {
         )}
 
         {currentTab === 'gerador' && store.hasPermission('produtos.ver') && (
-          <GeradorFichasTecnicas store={store} onBack={() => setCurrentTab('produtos')} onUpdate={() => setUpdateTick(t => t + 1)} />
+          <GeradorProdutos store={store} onBack={() => setCurrentTab('produtos')} onUpdate={() => setUpdateTick(t => t + 1)} />
         )}
 
         {currentTab === 'estoque' && store.hasPermission('estoque.ver') && (
