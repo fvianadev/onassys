@@ -284,7 +284,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
         </table>
         <h2>FICHA POR UNIDADE DE MEDIDA (${uniMedidaSigla})</h2>
         <table>
-          <tr><th>Descrição</th><th class="right">QTD / ${uniMedidaSigla}</th><th class="right">VL UNI TOTAL</th></tr>
+          <tr><th>Descrição</th><th class="right">QTD / ${uniMedidaSigla}</th><th class="right">vl total do Ingrediente</th></tr>
           ${dadosTabela.filter(d => d.materialId).map(d => `
             <tr>
               <td>${d.materialNome}</td>
@@ -499,7 +499,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               <div className="grid grid-cols-10 gap-2 text-[9px] font-bold text-gray-400 uppercase">
                 <div className="col-span-4">Descrição</div>
                 <div className="col-span-3 text-right">QTD / {uniMedidaSigla}</div>
-                <div className="col-span-3 text-right">VL UNI TOTAL</div>
+                <div className="col-span-3 text-right">vl total do Ingrediente</div>
               </div>
 
               {/* Rows */}
