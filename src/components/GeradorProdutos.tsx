@@ -467,7 +467,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     </div>
                     <div className="col-span-2">
                       <input
-                        type="text" inputMode="decimal"
+                        type="number" step="0.001" min="0" inputMode="decimal"
                         value={ing.qtdRaw}
                         onChange={e => handleIngredienteChange(idx, 'qtdTotal', e.target.value)}
                         className="w-full h-8 border border-amber-200 dark:border-[#2d1e0d] rounded px-2 text-[10px] font-mono text-right focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
