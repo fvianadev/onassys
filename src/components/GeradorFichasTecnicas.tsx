@@ -26,6 +26,7 @@ const UNIDADES_PRODUTO = [
 
 export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: GeradorFichasProps) {
   const [produtoNome, setProdutoNome] = useState('');
+  const [descricao, setDescricao] = useState('');
   const [unidadeId, setUnidadeId] = useState(5);
   const [rende, setRende] = useState(0);
   const [uniMedida, setUniMedida] = useState(100);
@@ -110,10 +111,15 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
     const validos = ingredientes.filter(i => i.materialId && i.qtdTotal > 0);
     if (validos.length === 0) { alert('Adicione pelo menos 1 ingrediente com quantidade > 0.'); return; }
 
+    const nomesIngredientes = validos
+      .map(v => store.materiais.find(m => m.id === v.materialId)?.nome)
+      .filter(Boolean)
+      .join(', ');
+
     const produtoResult = await store.addProduto({
       nome: produtoNome.trim(),
       categoria_id: store.categoriasFinanceiro[0]?.id || 1,
-      descricao: `Gerado pelo Gerador de Fichas — Rende ${rende} ${uniMedidaSigla}`,
+      descricao: `${produtoNome.trim()} — Ingredientes: ${nomesIngredientes}.`,
       unidade_producao_id: unidadeId,
       tempo_producao_minutos: 0,
       custo_producao_calculado: totalCustoProd,
@@ -309,7 +315,7 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
                     </div>
                     <div className="col-span-2">
                       <input
-                        type="number" min="0" step="0.001"
+                        type="number" step="0.001" inputMode="decimal"
                         value={ing.qtdTotal || ''}
                         onChange={e => handleIngredienteChange(idx, 'qtdTotal', Number(e.target.value))}
                         className="w-full h-8 border border-amber-200 dark:border-[#2d1e0d] rounded px-2 text-[10px] font-mono text-right focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
