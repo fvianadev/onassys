@@ -393,7 +393,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase">UNI ({uniMedidaSigla})</label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">QTD BASE</label>
                 <input
                   type="number" min="1" step="1"
                   value={uniMedida}
