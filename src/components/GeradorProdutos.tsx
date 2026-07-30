@@ -458,10 +458,10 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     <div className="col-span-1 flex items-center h-8 text-[10px] font-mono text-gray-500">
                       {unidade?.sigla || ''}
                     </div>
-                    <div className="col-span-2 flex items-center h-8 text-[10px] font-mono text-right text-emerald-700 dark:text-emerald-400 font-semibold">
+                    <div className="col-span-2 h-8 flex items-center justify-end text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
                       R$ {(mat?.custo_unitario || 0).toFixed(2)}
                     </div>
-                    <div className="col-span-2 flex items-center h-8 text-[10px] font-mono text-right font-bold">
+                    <div className="col-span-2 h-8 flex items-center justify-end text-[10px] font-mono font-bold">
                       R$ {vlTotal.toFixed(2)}
                     </div>
                     <div className="col-span-1 flex items-center justify-center">
