@@ -266,7 +266,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
         <div class="info">
           <div><span>Rendimento:</span> ${rende} unidades</div>
           <div><span>Unidade:</span> ${uniMedidaSigla} (${uniMedida} un)</div>
-          <div><span>Divisor:</span> ${divisor.toFixed(2)}</div>
+          <div><span>Divisor:</span> ${divisor.toFixed(2).replace('.', ',')}</div>
         </div>
         <h2>FICHA DA RECEITA ADQUIRIDA</h2>
         <table>
@@ -276,11 +276,11 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               <td>${d.materialNome}</td>
               <td class="right">${d.qtdTotal.toFixed(3)}</td>
               <td>${d.unidadeSigla}</td>
-              <td class="right">R$ ${d.vlUni.toFixed(2)}</td>
-              <td class="right">R$ ${d.vlTotal.toFixed(2)}</td>
+              <td class="right">R$ ${d.vlUni.toFixed(2).replace('.', ',')}</td>
+              <td class="right">R$ ${d.vlTotal.toFixed(2).replace('.', ',')}</td>
             </tr>
           `).join('')}
-          <tr class="total"><td colspan="4">CUSTO TOTAL DA RECEITA</td><td class="right">R$ ${totalReceitaOriginal.toFixed(2)}</td></tr>
+          <tr class="total"><td colspan="4">CUSTO TOTAL DA RECEITA</td><td class="right">R$ ${totalReceitaOriginal.toFixed(2).replace('.', ',')}</td></tr>
         </table>
         <h2>FICHA POR UNIDADE DE MEDIDA (${uniMedidaSigla})</h2>
         <table>
@@ -289,10 +289,10 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
             <tr>
               <td>${d.materialNome}</td>
               <td class="right">${d.qtdPorUnidade.toFixed(3)} ${d.unidadeSigla}</td>
-              <td class="right">R$ ${d.vlUniTotal.toFixed(2)}</td>
+              <td class="right">R$ ${d.vlUniTotal.toFixed(2).replace('.', ',')}</td>
             </tr>
           `).join('')}
-          <tr class="total"><td>custo por Unidade de Medida</td><td></td><td class="right">R$ ${totalCustoProd.toFixed(2)}</td></tr>
+          <tr class="total"><td>custo por Unidade de Medida</td><td></td><td class="right">R$ ${totalCustoProd.toFixed(2).replace('.', ',')}</td></tr>
         </table>
       </body>
       </html>
@@ -404,7 +404,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">QUOCIENTE</label>
                 <div className="h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 flex items-center text-xs font-mono bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200">
-                  {divisor > 0 ? divisor.toFixed(2) : '—'}
+                  {divisor > 0 ? divisor.toFixed(2).replace('.', ',') : '—'}
                 </div>
               </div>
             </div>
@@ -459,10 +459,10 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                       {unidade?.sigla || ''}
                     </div>
                     <div className="col-span-2 h-8 flex items-center justify-end text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
-                      R$ {(mat?.custo_unitario || 0).toFixed(2)}
+                      R$ {(mat?.custo_unitario || 0).toFixed(2).replace('.', ',')}
                     </div>
                     <div className="col-span-2 h-8 flex items-center justify-end text-[10px] font-mono font-bold">
-                      R$ {vlTotal.toFixed(2)}
+                      R$ {vlTotal.toFixed(2).replace('.', ',')}
                     </div>
                     <div className="col-span-1 flex items-center justify-center">
                       <button onClick={() => handleRemoveIngrediente(idx)} className="text-red-400 hover:text-red-600 transition">
@@ -479,7 +479,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <div className="col-span-2"></div>
                 <div className="col-span-1"></div>
                 <div className="col-span-2 text-[10px] font-bold text-right text-amber-900 dark:text-amber-200">CUSTO TOTAL DA RECEITA</div>
-                <div className="col-span-2 text-[10px] font-mono font-bold text-right text-amber-900 dark:text-amber-200">R$ {totalReceitaOriginal.toFixed(2)}</div>
+                <div className="col-span-2 text-[10px] font-mono font-bold text-right text-amber-900 dark:text-amber-200">R$ {totalReceitaOriginal.toFixed(2).replace('.', ',')}</div>
                 <div className="col-span-1"></div>
               </div>
             </div>
@@ -510,7 +510,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     {d.qtdPorUnidade.toFixed(3)} <span className="text-gray-400">{d.unidadeSigla}</span>
                   </div>
                   <div className="col-span-3 text-[10px] font-mono text-right font-semibold">
-                    R$ {d.vlUniTotal.toFixed(2)}
+                    R$ {d.vlUniTotal.toFixed(2).replace('.', ',')}
                   </div>
                 </div>
               ))}
@@ -520,7 +520,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <div className="col-span-4 text-[10px] font-bold text-amber-900 dark:text-amber-200">custo por Unidade de Medida</div>
                 <div className="col-span-3"></div>
                 <div className="col-span-3 text-[10px] font-mono font-bold text-right text-amber-900 dark:text-amber-200">
-                  R$ {totalCustoProd.toFixed(2)}
+                  R$ {totalCustoProd.toFixed(2).replace('.', ',')}
                 </div>
               </div>
             </div>
@@ -568,7 +568,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                     <div className="text-[10px] text-gray-400">{produto!.descricao?.substring(0, 40)}...</div>
                   </div>
                   <div className="col-span-2 text-xs font-mono text-right text-emerald-700 dark:text-emerald-400">
-                    R$ {custoTotal.toFixed(2)}
+                    R$ {custoTotal.toFixed(2).replace('.', ',')}
                   </div>
                   <div className="col-span-2 text-xs text-center text-gray-500">
                     {store.unidades.find(u => u.id === produto!.unidade_producao_id)?.sigla || '—'}
