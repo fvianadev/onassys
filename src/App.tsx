@@ -9,6 +9,7 @@ import Clientes from './components/Clientes';
 import Fornecedores from './components/Fornecedores';
 import Pedidos from './components/Pedidos';
 import Caixa from './components/Caixa';
+import GeradorFichasTecnicas from './components/GeradorFichasTecnicas';
 import SetupInstructions from './components/SetupInstructions';
 import Login from './components/Login';
 import AddAdmin from './components/AddAdmin';
@@ -50,7 +51,8 @@ import {
   Wifi,
   WifiOff,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 
 type AuthScreen = 'loading' | 'setup' | 'add-admin' | 'login' | 'app';
@@ -347,6 +349,7 @@ export default function App() {
                 { id: 'relatorios', label: 'Relatórios', icon: <BarChart3 size={15} />, perm: 'financeiro.ver' },
                 { id: 'materiais', label: 'Insumos', icon: <Coins size={15} />, perm: 'materiais.ver' },
                 { id: 'produtos', label: 'Produtos', icon: <Layers size={16} />, perm: 'produtos.ver' },
+                { id: 'gerador', label: 'Gerador Fichas', icon: <FileText size={15} />, perm: 'produtos.ver' },
                 { id: 'pedidos', label: 'Pedidos', icon: <ShoppingBag size={15} />, perm: 'pedidos.ver' },
                 { id: 'estoque', label: 'Estoque', icon: <Warehouse size={15} />, perm: 'estoque.ver' },
                 { id: 'clientes', label: 'Clientes', icon: <Users size={15} />, perm: 'clientes.ver' },
@@ -570,6 +573,10 @@ export default function App() {
           <Produtos store={store} onUpdate={() => setUpdateTick(t => t + 1)} />
         )}
 
+        {currentTab === 'gerador' && store.hasPermission('produtos.ver') && (
+          <GeradorFichasTecnicas store={store} onBack={() => setCurrentTab('produtos')} onUpdate={() => setUpdateTick(t => t + 1)} />
+        )}
+
         {currentTab === 'estoque' && store.hasPermission('estoque.ver') && (
           <EstoqueProdutos store={store} onUpdate={() => setUpdateTick(t => t + 1)} />
         )}
@@ -624,6 +631,7 @@ export default function App() {
         {[
           { id: 'dashboard', label: 'Monitor', icon: <LayoutDashboard size={18} />, perm: null },
           { id: 'materiais', label: 'Insumos', icon: <Coins size={18} />, perm: 'materiais.ver' },
+          { id: 'gerador', label: 'Gerador', icon: <FileText size={18} />, perm: 'produtos.ver' },
           { id: 'pedidos', label: 'Pedidos', icon: <ShoppingBag size={18} />, perm: 'pedidos.ver' },
           { id: 'estoque', label: 'Estoque de Produtos', icon: <Warehouse size={18} />, perm: 'estoque.ver' },
         ].filter(item => !item.perm || store.hasPermission(item.perm)).map(item => {
