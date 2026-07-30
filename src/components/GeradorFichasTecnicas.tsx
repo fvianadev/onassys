@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { MiniFactoryStore } from '../lib/store';
 import { calcularDivisor, escalarReceita, normalizarQuantidade } from '../lib/calculos';
 import SelectSearch from './SelectSearch';
-import { ArrowLeft, Plus, Trash2, FileText, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, FileText, Save, X } from 'lucide-react';
+
+const DRAFT_KEY = 'gerador-produto-draft';
 
 interface IngredienteLinha {
   materialId: string;
@@ -26,13 +28,59 @@ const UNIDADES_PRODUTO = [
 
 export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: GeradorFichasProps) {
   const [produtoNome, setProdutoNome] = useState('');
-  const [descricao, setDescricao] = useState('');
   const [unidadeId, setUnidadeId] = useState(5);
   const [rende, setRende] = useState(0);
   const [uniMedida, setUniMedida] = useState(100);
   const [ingredientes, setIngredientes] = useState<IngredienteLinha[]>([
     { materialId: '', qtdTotal: 0, unidadeId: 1 },
   ]);
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [draftData, setDraftData] = useState<any>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Carregar rascunho ao montar
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        setDraftData(data);
+        setShowRestorePrompt(true);
+      }
+    } catch { /* ignora JSON inválido */ }
+  }, []);
+
+  // Salvar rascunho automaticamente (debounce 500ms)
+  useEffect(() => {
+    if (showRestorePrompt) return; // não salvar enquanto prompt está aberto
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const hasData = produtoNome || rende > 0 || ingredientes.some(i => i.materialId);
+      if (hasData) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          produtoNome, unidadeId, rende, uniMedida, ingredientes,
+        }));
+      }
+    }, 500);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [produtoNome, unidadeId, rende, uniMedida, ingredientes, showRestorePrompt]);
+
+  const handleRestaurarDraft = () => {
+    if (draftData) {
+      setProdutoNome(draftData.produtoNome || '');
+      setUnidadeId(draftData.unidadeId || 5);
+      setRende(draftData.rende || 0);
+      setUniMedida(draftData.uniMedida || 100);
+      setIngredientes(draftData.ingredientes || [{ materialId: '', qtdTotal: 0, unidadeId: 1 }]);
+    }
+    setShowRestorePrompt(false);
+  };
+
+  const handleDescartarDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setShowRestorePrompt(false);
+    setDraftData(null);
+  };
 
   const divisor = useMemo(() => calcularDivisor(rende, uniMedida), [rende, uniMedida]);
   const uniMedidaSigla = useMemo(() => {
@@ -141,7 +189,13 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
     }
 
     alert(`Produto "${produtoNome}" e ficha técnica criados com sucesso!`);
+    localStorage.removeItem(DRAFT_KEY);
     onUpdate();
+    onBack();
+  };
+
+  const handleCancelar = () => {
+    localStorage.removeItem(DRAFT_KEY);
     onBack();
   };
 
@@ -210,9 +264,29 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
+      {/* Modal de Restaurar Rascunho */}
+      {showRestorePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-[#1c140c] rounded-xl border border-amber-200 dark:border-[#2d1e0d] p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-2">Rascunho encontrado</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+              Existe um rascunho salvo anteriormente. Deseja restaurá-lo?
+            </p>
+            <div className="flex gap-2">
+              <button onClick={handleDescartarDraft} className="flex-1 py-2 px-3 rounded-lg text-xs font-bold border border-gray-300 dark:border-[#2d1e0d] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#2d1e0d] transition">
+                Descartar
+              </button>
+              <button onClick={handleRestaurarDraft} className="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition">
+                Restaurar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">
+        <button onClick={handleCancelar} className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">
           <ArrowLeft size={20} className="text-amber-700" />
         </button>
         <div>
