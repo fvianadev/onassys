@@ -425,8 +425,8 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 <div className="col-span-4">Descrição</div>
                 <div className="col-span-2 text-right">QTD</div>
                 <div className="col-span-1">UNI</div>
-                <div className="col-span-2 text-right">VL UNI</div>
-                <div className="col-span-2 text-right">VL TOTAL</div>
+                <div className="col-span-2 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-end">VL UNI</div>
+                <div className="col-span-2 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-end">VL TOTAL</div>
                 <div className="col-span-1"></div>
               </div>
 
