@@ -30,7 +30,7 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
   const [produtoNome, setProdutoNome] = useState('');
   const [unidadeId, setUnidadeId] = useState(5);
   const [rende, setRende] = useState(0);
-  const [uniMedida, setUniMedida] = useState(100);
+  const [uniMedida, setUniMedida] = useState(1);
   const [ingredientes, setIngredientes] = useState<IngredienteLinha[]>([
     { materialId: '', qtdTotal: 0, unidadeId: 1 },
   ]);
@@ -159,8 +159,9 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
   const handleSalvar = async () => {
     if (!produtoNome.trim()) { alert('Preencha o nome do produto.'); return; }
     if (rende <= 0) { alert('O rendimento deve ser maior que 0.'); return; }
+    if (!unidadeId) { alert('Selecione a unidade do produto.'); return; }
     const validos = ingredientes.filter(i => i.materialId && i.qtdTotal > 0);
-    if (validos.length === 0) { alert('Adicione pelo menos 1 ingrediente com quantidade > 0.'); return; }
+    if (validos.length === 0) { alert('Preencha pelo menos 1 ingrediente com quantidade maior que 0.'); return; }
 
     const nomesIngredientes = validos
       .map(v => store.materiais.find(m => m.id === v.materialId)?.nome)
@@ -377,7 +378,7 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
                   type="number" min="1" step="1"
                   value={rende || ''}
                   onChange={e => setRende(Number(e.target.value))}
-                  placeholder="Ex: 310"
+                  placeholder="Ex: 100"
                   className="w-full h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 text-xs font-mono focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
                 />
               </div>
@@ -448,7 +449,7 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
                     </div>
                     <div className="col-span-2">
                       <input
-                        type="number" step="0.001" inputMode="decimal"
+                        type="number" step="0.001" min="0" inputMode="decimal"
                         value={ing.qtdTotal || ''}
                         onChange={e => handleIngredienteChange(idx, 'qtdTotal', Number(e.target.value))}
                         className="w-full h-8 border border-amber-200 dark:border-[#2d1e0d] rounded px-2 text-[10px] font-mono text-right focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c]"
