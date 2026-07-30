@@ -413,7 +413,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
           {/* Ficha da Receita Adquirida */}
           <div className="bg-white dark:bg-[#120c06] rounded-xl border border-amber-100 dark:border-[#2d1e0d] p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-amber-900 dark:text-amber-200 uppercase">Ficha da Receita Adquirida</h2>
+              <h2 className="text-sm font-bold text-amber-900 dark:text-amber-200 uppercase">Receita Base de calculo</h2>
               <button onClick={handleAddIngrediente} className="flex items-center gap-1 text-[10px] font-bold text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200 transition">
                 <Plus size={12} /> Adicionar
               </button>
