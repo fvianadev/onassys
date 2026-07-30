@@ -166,7 +166,7 @@ export default function FluxoCaixa({ store, isOpen, onClose }: FluxoCaixaProps) 
 
   const exportCSV = () => {
     const headers = ['Data', 'Tipo', 'Categoria', 'Descrição', 'Pagamento', 'Entrada', 'Saída', 'Saldo'];
-    const rows = [['Saldo Anterior', '', '', '', '', '', '', saldoAnterior.toFixed(2)]];
+    const rows = [['Saldo Anterior', '', '', '', '', '', '', saldoAnterior.toFixed(2).replace('.', ',')]];
     for (const i of fluxoItems) {
       rows.push([
         i.dataStr,
@@ -174,12 +174,12 @@ export default function FluxoCaixa({ store, isOpen, onClose }: FluxoCaixaProps) 
         i.categoria,
         i.descricao,
         i.pagamento,
-        i.entrada ? i.entrada.toFixed(2) : '',
-        i.saida ? i.saida.toFixed(2) : '',
-        i.saldo.toFixed(2),
+        i.entrada ? i.entrada.toFixed(2).replace('.', ',') : '',
+        i.saida ? i.saida.toFixed(2).replace('.', ',') : '',
+        i.saldo.toFixed(2).replace('.', ','),
       ]);
     }
-    rows.push(['SALDO FINAL', '', '', '', '', totalEntradas.toFixed(2), totalSaidas.toFixed(2), saldoFinal.toFixed(2)]);
+    rows.push(['SALDO FINAL', '', '', '', '', totalEntradas.toFixed(2).replace('.', ','), totalSaidas.toFixed(2).replace('.', ','), saldoFinal.toFixed(2).replace('.', ',')]);
     const csv = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

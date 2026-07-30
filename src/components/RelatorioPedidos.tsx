@@ -55,7 +55,7 @@ export default function RelatorioPedidos({ store, isOpen, onClose }: RelatorioPe
         `"${cli}"`,
         new Date(p.data_pedido).toLocaleDateString('pt-BR'),
         new Date(p.data_entrega_prevista).toLocaleDateString('pt-BR'),
-        p.valor_total.toFixed(2),
+        p.valor_total.toFixed(2).replace('.', ','),
         store.statusNome(p.status_id),
       ].join(',');
     });

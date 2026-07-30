@@ -75,8 +75,8 @@ export default function ReceitasPagamento({ store, isOpen, onClose }: ReceitasPa
     const rows = gruposPagamento.map(g => [
       g.forma_pagamento,
       g.quantidade,
-      g.total.toFixed(2),
-      g.ticketMedio.toFixed(2),
+      g.total.toFixed(2).replace('.', ','),
+      g.ticketMedio.toFixed(2).replace('.', ','),
       g.percentual.toFixed(1),
     ].join(','));
     const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
