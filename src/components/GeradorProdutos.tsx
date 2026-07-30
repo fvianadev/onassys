@@ -491,7 +491,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
           {/* Ficha por Unidade de Medida */}
           <div className="bg-white dark:bg-[#120c06] rounded-xl border border-amber-100 dark:border-[#2d1e0d] p-4 space-y-3">
             <h2 className="text-sm font-bold text-amber-900 dark:text-amber-200 uppercase">
-              Ficha por Unidade de Medida ({uniMedidaSigla})
+              Ficha por Unidade de Medida
             </h2>
 
             <div className="space-y-2">
