@@ -393,7 +393,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase">QTD BASE</label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">DIVISOR</label>
                 <input
                   type="number" min="1" step="1"
                   value={uniMedida}
@@ -402,7 +402,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Divisor</label>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">QUOCIENTE</label>
                 <div className="h-9 border border-amber-200 dark:border-[#2d1e0d] rounded-lg px-3 flex items-center text-xs font-mono bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200">
                   {divisor > 0 ? divisor.toFixed(2) : '—'}
                 </div>
