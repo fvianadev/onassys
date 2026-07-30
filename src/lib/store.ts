@@ -579,6 +579,29 @@ export class MiniFactoryStore {
     }
   }
 
+  async deleteProdutoCompleto(id: string) {
+    const p = this.produtos.find(x => x.id === id);
+    try {
+      // Deleta fichas do Supabase
+      await supabase.from('fichas_tecnicas').delete().eq('produto_id', id);
+      // Deleta estoque do Supabase
+      await supabase.from('estoque_produtos').delete().eq('produto_id', id);
+      // Deleta produto do Supabase
+      const ok = await this.supabaseDelete('produtos', id);
+      if (ok) {
+        if (p?.imagem && isStorageUrl(p.imagem)) deleteProdutoImage(p.imagem).catch(() => { });
+        this.produtos = this.produtos.filter(x => x.id !== id);
+        this.fichas = this.fichas.filter(f => f.produto_id !== id);
+        this.estoqueProdutos = this.estoqueProdutos.filter(e => e.produto_id !== id);
+        this.saveToLocalStorage(); this.notify();
+      }
+      return ok;
+    } catch {
+      this.setError('Erro ao excluir produto. Tente novamente.', 'server');
+      return false;
+    }
+  }
+
   // ================================================
   // CRUD — FICHAS TÉCNICAS
   // ================================================

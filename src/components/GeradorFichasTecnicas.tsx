@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { MiniFactoryStore } from '../lib/store';
 import { calcularDivisor, escalarReceita, normalizarQuantidade } from '../lib/calculos';
 import SelectSearch from './SelectSearch';
-import { ArrowLeft, Plus, Trash2, FileText, Save, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, FileText, Save, X, Copy, Package } from 'lucide-react';
 
 const DRAFT_KEY = 'gerador-produto-draft';
 
@@ -36,6 +36,9 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
   ]);
   const [showRestorePrompt, setShowRestorePrompt] = useState(false);
   const [draftData, setDraftData] = useState<any>(null);
+  const [abaAtiva, setAbaAtiva] = useState<'criar' | 'gerados'>('criar');
+  const [produtoEditandoId, setProdutoEditandoId] = useState<string | null>(null);
+  const [showConfirmExcluir, setShowConfirmExcluir] = useState<string | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Carregar rascunho ao montar
@@ -199,6 +202,45 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
     onBack();
   };
 
+  // Produtos que têm fichas técnicas (para aba Gerados)
+  const produtosGerados = useMemo(() => {
+    const produtoIdsComFichas = [...new Set(store.fichas.map(f => f.produto_id))];
+    return produtoIdsComFichas.map(pid => {
+      const produto = store.produtos.find(p => p.id === pid);
+      const fichasDoProduto = store.fichas.filter(f => f.produto_id === pid);
+      const custoTotal = fichasDoProduto.reduce((sum, f) => {
+        const mat = store.materiais.find(m => m.id === f.material_id);
+        return sum + (f.quantidade_necessaria * (mat?.custo_unitario || 0));
+      }, 0);
+      return { produto, fichas: fichasDoProduto, custoTotal };
+    }).filter(x => x.produto);
+  }, [store.produtos, store.fichas, store.materiais]);
+
+  const handleCriarSimilar = (produtoId: string) => {
+    const fichasDoProduto = store.fichas.filter(f => f.produto_id === produtoId);
+    const novosIngredientes: IngredienteLinha[] = fichasDoProduto.map(f => {
+      const mat = store.materiais.find(m => m.id === f.material_id);
+      return {
+        materialId: f.material_id,
+        qtdTotal: f.quantidade_necessaria, // valor por unidade (já dividido)
+        unidadeId: mat?.unidade_id || f.unidade_id,
+      };
+    });
+    setIngredientes(novosIngredientes.length > 0 ? novosIngredientes : [{ materialId: '', qtdTotal: 0, unidadeId: 1 }]);
+    setProdutoNome('');
+    setProdutoEditandoId(null);
+    setAbaAtiva('criar');
+    localStorage.removeItem(DRAFT_KEY);
+  };
+
+  const handleExcluirProduto = async (produtoId: string) => {
+    const result = await store.deleteProdutoCompleto(produtoId);
+    if (result !== false) {
+      setShowConfirmExcluir(null);
+      onUpdate();
+    }
+  };
+
   const handleImprimir = () => {
     const printContent = `
       <html>
@@ -289,12 +331,29 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
         <button onClick={handleCancelar} className="p-2 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition">
           <ArrowLeft size={20} className="text-amber-700" />
         </button>
-        <div>
-          <h1 className="text-xl font-bold text-amber-950 dark:text-amber-100">Gerador de Fichas Técnicas</h1>
-          <p className="text-xs text-gray-500">Crie fichas técnicas a partir de receitas adquiridas</p>
+        <div className="flex-1">
+          <h1 className="text-xl font-bold text-amber-950 dark:text-amber-100">Gerador de Produtos</h1>
+          <p className="text-xs text-gray-500">Crie produtos a partir de receitas adquiridas</p>
+        </div>
+        {/* Toggle Abas */}
+        <div className="flex bg-amber-100 dark:bg-[#2d1e0d] rounded-lg p-1">
+          <button
+            onClick={() => setAbaAtiva('criar')}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition ${abaAtiva === 'criar' ? 'bg-amber-600 text-white shadow' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-[#3d2e1d]'}`}
+          >
+            Criar
+          </button>
+          <button
+            onClick={() => setAbaAtiva('gerados')}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition ${abaAtiva === 'gerados' ? 'bg-amber-600 text-white shadow' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-[#3d2e1d]'}`}
+          >
+            Gerados ({produtosGerados.length})
+          </button>
         </div>
       </div>
 
+      {/* Aba Criar */}
+      {abaAtiva === 'criar' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* COLUNA ESQUERDA — Dados + Receita Original */}
         <div className="space-y-4">
@@ -477,6 +536,88 @@ export default function GeradorFichasTecnicas({ store, onBack, onUpdate }: Gerad
           </div>
         </div>
       </div>
+      )}
+
+      {/* Aba Gerados */}
+      {abaAtiva === 'gerados' && (
+      <div className="space-y-4">
+        {produtosGerados.length === 0 ? (
+          <div className="bg-white dark:bg-[#120c06] rounded-xl border border-amber-100 dark:border-[#2d1e0d] p-8 text-center">
+            <Package size={32} className="mx-auto mb-3 text-amber-300" />
+            <p className="text-sm text-gray-500">Nenhum produto gerado ainda.</p>
+            <p className="text-xs text-gray-400 mt-1">Crie um produto na aba "Criar" para vê-lo aqui.</p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-[#120c06] rounded-xl border border-amber-100 dark:border-[#2d1e0d] p-4">
+            <div className="space-y-2">
+              {/* Header */}
+              <div className="grid grid-cols-12 gap-2 text-[9px] font-bold text-gray-400 uppercase pb-2 border-b border-amber-100 dark:border-[#2d1e0d]">
+                <div className="col-span-4">Produto</div>
+                <div className="col-span-2 text-right">Custo</div>
+                <div className="col-span-2 text-center">Unidade</div>
+                <div className="col-span-2 text-center">Fichas</div>
+                <div className="col-span-2 text-center">Ações</div>
+              </div>
+
+              {/* Rows */}
+              {produtosGerados.map(({ produto, fichas, custoTotal }) => (
+                <div key={produto!.id} className="grid grid-cols-12 gap-2 items-center py-2 hover:bg-amber-50 dark:hover:bg-[#2d1e0d] rounded-lg transition">
+                  <div className="col-span-4">
+                    <div className="text-xs font-bold text-amber-900 dark:text-amber-100 truncate">{produto!.nome}</div>
+                    <div className="text-[10px] text-gray-400">{produto!.descricao?.substring(0, 40)}...</div>
+                  </div>
+                  <div className="col-span-2 text-xs font-mono text-right text-emerald-700 dark:text-emerald-400">
+                    R$ {custoTotal.toFixed(2)}
+                  </div>
+                  <div className="col-span-2 text-xs text-center text-gray-500">
+                    {store.unidades.find(u => u.id === produto!.unidade_producao_id)?.sigla || '—'}
+                  </div>
+                  <div className="col-span-2 text-xs text-center text-gray-500">
+                    {fichas.length} ingrediente{fichas.length !== 1 ? 's' : ''}
+                  </div>
+                  <div className="col-span-2 flex items-center justify-center gap-1">
+                    <button
+                      onClick={() => handleCriarSimilar(produto!.id)}
+                      className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
+                      title="Criar similar"
+                    >
+                      <Copy size={12} className="text-amber-600" />
+                    </button>
+                    <button
+                      onClick={() => setShowConfirmExcluir(produto!.id)}
+                      className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+                      title="Excluir"
+                    >
+                      <Trash2 size={12} className="text-red-400" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      )}
+
+      {/* Modal Confirmar Exclusão */}
+      {showConfirmExcluir && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-[#1c140c] rounded-xl border border-amber-200 dark:border-[#2d1e0d] p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 mb-2">Excluir produto?</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+              Esta ação irá excluir o produto e todas as suas fichas técnicas. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setShowConfirmExcluir(null)} className="flex-1 py-2 px-3 rounded-lg text-xs font-bold border border-gray-300 dark:border-[#2d1e0d] text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#2d1e0d] transition">
+                Cancelar
+              </button>
+              <button onClick={() => handleExcluirProduto(showConfirmExcluir)} className="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition">
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
