@@ -30,6 +30,7 @@ const UNIDADES_PRODUTO = [
 
 export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProdutosProps) {
   const [produtoNome, setProdutoNome] = useState('');
+  const [categoriaId, setCategoriaId] = useState<number>(() => store.categorias[0]?.id || 1);
   const [unidadeId, setUnidadeId] = useState(5);
   const [rende, setRende] = useState(0);
   const [uniMedida, setUniMedida] = useState(1);
@@ -64,16 +65,17 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
       const hasData = produtoNome || rende > 0 || ingredientes.some(i => i.materialId);
       if (hasData) {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
-          produtoNome, unidadeId, rende, uniMedida, ingredientes,
+          produtoNome, categoriaId, unidadeId, rende, uniMedida, ingredientes,
         }));
       }
     }, 500);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [produtoNome, unidadeId, rende, uniMedida, ingredientes, showRestorePrompt]);
+  }, [produtoNome, categoriaId, unidadeId, rende, uniMedida, ingredientes, showRestorePrompt]);
 
   const handleRestaurarDraft = () => {
     if (draftData) {
       setProdutoNome(draftData.produtoNome || '');
+      setCategoriaId(draftData.categoriaId || store.categorias[0]?.id || 1);
       setUnidadeId(draftData.unidadeId || 5);
       setRende(draftData.rende || 0);
       setUniMedida(draftData.uniMedida || 1);
@@ -186,7 +188,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
     const precoVendaCalculado = Number((totalCustoProd * (1 + 100 / 100)).toFixed(2));
     const produtoResult = await store.addProduto({
       nome: produtoNome.trim(),
-      categoria_id: store.categoriasFinanceiro[0]?.id || 1,
+      categoria_id: categoriaId,
       descricao: `${produtoNome.trim()} — Ingredientes: ${nomesIngredientes}.`,
       unidade_producao_id: unidadeId,
       tempo_producao_minutos: 0,
@@ -282,7 +284,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
         <h1>FICHA TÉCNICA — ${produtoNome}</h1>
         <div class="info">
           <div><span>Rendimento:</span> ${rende} unidades</div>
-          <div><span>Unidade:</span> ${uniMedidaSigla} (${uniMedida} un)</div>
+          <div><span>Unidade:</span> ${uniMedidaSigla} (${uniMedida})</div>
           <div><span>Divisor:</span> ${divisor.toFixed(2).replace('.', ',')}</div>
         </div>
         <h2>FICHA DA RECEITA ADQUIRIDA</h2>
@@ -297,7 +299,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               <td class="right">R$ ${d.vlTotal.toFixed(2).replace('.', ',')}</td>
             </tr>
           `).join('')}
-          <tr class="total"><td colspan="4">CUSTO TOTAL DA RECEITA</td><td class="right">R$ ${totalReceitaOriginal.toFixed(2).replace('.', ',')}</td></tr>
+          <tr class="total"><td colspan="4">CUSTO RECEITA</td><td class="right">R$ ${totalReceitaOriginal.toFixed(2).replace('.', ',')}</td></tr>
         </table>
         <h2>FICHA POR UNIDADE DE MEDIDA (${uniMedidaSigla})</h2>
         <table>
@@ -309,7 +311,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               <td class="right">R$ ${d.vlUniTotal.toFixed(2).replace('.', ',')}</td>
             </tr>
           `).join('')}
-          <tr class="total"><td>VALOR DE CUSTO UNITÁRIO</td><td></td><td class="right">R$ ${totalCustoProd.toFixed(2).replace('.', ',')}</td></tr>
+          <tr class="total"><td>CUSTO UNITÁRIO</td><td></td><td class="right">R$ ${totalCustoProd.toFixed(2).replace('.', ',')}</td></tr>
         </table>
       </body>
       </html>
@@ -379,7 +381,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
           <div className="bg-white dark:bg-[#120c06] rounded-xl border border-amber-100 dark:border-[#2d1e0d] p-4 space-y-3">
             <h2 className="text-sm font-bold text-amber-900 dark:text-amber-200 uppercase">Dados do Produto</h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
+              <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">Produto</label>
                 <input
                   type="text"
@@ -389,6 +391,16 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                   className={`w-full h-9 border rounded-lg px-3 text-xs focus:outline-none focus:border-amber-400 bg-white dark:bg-[#1c140c] ${erros.produtoNome ? 'border-red-400 dark:border-red-600' : 'border-amber-200 dark:border-[#2d1e0d]'}`}
                 />
                 {erros.produtoNome && <p className="text-[10px] text-red-500 mt-1">{erros.produtoNome}</p>}
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Categoria</label>
+                <SelectSearch
+                  value={String(categoriaId)}
+                  onChange={v => setCategoriaId(Number(v))}
+                  options={store.categorias.map(cat => ({ value: String(cat.id), label: cat.nome }))}
+                  placeholder="Selecione"
+                  size="sm"
+                />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-500 uppercase">Rende (total)</label>
@@ -467,6 +479,7 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
                         onChange={v => handleIngredienteChange(idx, 'materialId', v)}
                         options={ing.materialId ? todosMateriais : materiaisDisponiveis}
                         placeholder="Selecione"
+                        size="sm"
                       />
                     </div>
                     <div className="col-span-2">
@@ -498,10 +511,10 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
 
               {/* Totais */}
               <div className="grid grid-cols-12 gap-2 items-center pt-2 border-t border-amber-100 dark:border-[#2d1e0d]">
-                <div className="col-span-4 text-[10px] font-bold text-amber-900 dark:text-amber-200">TOTAIS</div>
-                <div className="col-span-2"></div>
-                <div className="col-span-1"></div>
-                <div className="col-span-2 text-[10px] font-bold text-right text-amber-900 dark:text-amber-200">CUSTO TOTAL DA RECEITA</div>
+                <div className="col-span-9 flex justify-between text-[10px] font-bold text-amber-900 dark:text-amber-200">
+                  <span>TOTAIS</span>
+                  <span>CUSTO RECEITA</span>
+                </div>
                 <div className="col-span-2 text-[10px] font-mono font-bold text-right text-amber-900 dark:text-amber-200">R$ {totalReceitaOriginal.toFixed(2).replace('.', ',')}</div>
                 <div className="col-span-1"></div>
               </div>
@@ -519,19 +532,19 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
 
             <div className="space-y-2">
               {/* Header */}
-              <div className="grid grid-cols-10 gap-2 text-[9px] font-bold text-gray-400 uppercase">
+              <div className="grid grid-cols-11 gap-2 text-[9px] font-bold text-gray-400 uppercase">
                 <div className="col-span-4">Descrição</div>
-                <div className="col-span-3 text-right">QTD / {uniMedidaSigla}</div>
+                <div className="col-span-3 text-right">QTD</div>
+                <div className="col-span-1">UN</div>
                 <div className="col-span-3 text-right">Vl Total</div>
               </div>
 
               {/* Rows */}
               {dadosTabela.filter(d => d.materialId).map((d, idx) => (
-                <div key={idx} className="grid grid-cols-10 gap-2 items-center">
+                <div key={idx} className="grid grid-cols-11 gap-2 items-center">
                   <div className="col-span-4 text-[10px] font-medium truncate">{d.materialNome}</div>
-                  <div className="col-span-3 text-[10px] font-mono text-right">
-                    {d.qtdPorUnidade.toFixed(3)} <span className="text-gray-400">{d.unidadeSigla}</span>
-                  </div>
+                  <div className="col-span-3 text-[10px] font-mono text-right">{d.qtdPorUnidade.toFixed(3)}</div>
+                  <div className="col-span-1 text-[10px] font-mono text-gray-500">{d.unidadeSigla}</div>
                   <div className="col-span-3 text-[10px] font-mono text-right font-semibold">
                     R$ {d.vlUniTotal.toFixed(2).replace('.', ',')}
                   </div>
@@ -539,9 +552,8 @@ export default function GeradorProdutos({ store, onBack, onUpdate }: GeradorProd
               ))}
 
               {/* Total */}
-              <div className="grid grid-cols-10 gap-2 items-center pt-2 border-t border-amber-100 dark:border-[#2d1e0d]">
-                <div className="col-span-4 text-[10px] font-bold text-amber-900 dark:text-amber-200">VALOR DE CUSTO UNITÁRIO</div>
-                <div className="col-span-3"></div>
+              <div className="grid grid-cols-11 gap-2 items-center pt-2 border-t border-amber-100 dark:border-[#2d1e0d]">
+                <div className="col-span-8 text-[10px] font-bold text-amber-900 dark:text-amber-200">CUSTO UNITÁRIO</div>
                 <div className="col-span-3 text-[10px] font-mono font-bold text-right text-amber-900 dark:text-amber-200">
                   R$ {totalCustoProd.toFixed(2).replace('.', ',')}
                 </div>
