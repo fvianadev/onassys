@@ -54,9 +54,10 @@ export class MiniFactoryStore {
   }
 
   private notify() { if (this.batching) { this.batchDirty = true; return; } this.onUpdateCallbacks.forEach(cb => cb()); }
+  private skipBatch() { return this.batching; }
 
   startBatch() { this.batching = true; this.batchDirty = false; }
-  endBatch() { this.batching = false; if (this.batchDirty) { this.recalcularCustosProdutos(); this.onUpdateCallbacks.forEach(cb => cb()); } }
+  endBatch() { this.batching = false; if (this.batchDirty) { this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.onUpdateCallbacks.forEach(cb => cb()); } }
 
   clearError() { this.error = null; this.errorType = null; this.notify(); }
 
@@ -569,7 +570,11 @@ export class MiniFactoryStore {
     if (idx === -1) return;
     const updated = { ...this.produtos[idx], ...updates };
     const ok = await this.supabaseUpdate('produtos', id, updated as unknown as Record<string, unknown>);
-    if (ok) { this.produtos = this.produtos.map((p, i) => i === idx ? updated : p); this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+    if (ok) {
+      this.produtos = this.produtos.map((p, i) => i === idx ? updated : p);
+      if (!this.skipBatch()) { this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+      else { this.batchDirty = true; }
+    }
   }
 
   async deleteProduto(id: string) {
@@ -613,7 +618,11 @@ export class MiniFactoryStore {
   async addFichaTecnica(ficha: Omit<FichaTecnicaItem, 'id'>) {
     const nova: FichaTecnicaItem = { ...ficha, id: 'ficha_' + Math.random().toString(36).substring(2, 9) };
     const ok = await this.supabaseInsert('fichas_tecnicas', nova as unknown as Record<string, unknown>);
-    if (ok) { this.fichas = [...this.fichas, nova]; this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+    if (ok) {
+      this.fichas = [...this.fichas, nova];
+      if (!this.skipBatch()) { this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+      else { this.batchDirty = true; }
+    }
     return nova;
   }
 
@@ -622,12 +631,20 @@ export class MiniFactoryStore {
     if (idx === -1) return;
     const updated = { ...this.fichas[idx], ...updates };
     const ok = await this.supabaseUpdate('fichas_tecnicas', id, updated as unknown as Record<string, unknown>);
-    if (ok) { this.fichas = this.fichas.map((f, i) => i === idx ? updated : f); this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+    if (ok) {
+      this.fichas = this.fichas.map((f, i) => i === idx ? updated : f);
+      if (!this.skipBatch()) { this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+      else { this.batchDirty = true; }
+    }
   }
 
   async deleteFichaTecnica(id: string): Promise<boolean> {
     const ok = await this.supabaseDelete('fichas_tecnicas', id);
-    if (ok) { this.fichas = this.fichas.filter(f => f.id !== id); this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+    if (ok) {
+      this.fichas = this.fichas.filter(f => f.id !== id);
+      if (!this.skipBatch()) { this.recalcularCustosProdutos(); this.saveToLocalStorage(); this.notify(); }
+      else { this.batchDirty = true; }
+    }
     return ok;
   }
 
