@@ -701,7 +701,7 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
       {/* MODAL: NEW / EDIT PRODUCT + FICHA TECNICA */}
       {isFormOpen && (store.hasPermission('produtos.criar') || store.hasPermission('produtos.editar')) && (
         <>
-          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => { cleanupImagePreview(); setIsFormOpen(false); }} />
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => { cleanupImagePreview(); setIsFormOpen(false); }} />
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 text-xs font-sans">
             <div className="bg-white dark:bg-[#120c06] w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-2xl border border-amber-100 dark:border-[#2d1e0d] flex flex-col max-h-[90vh]">
             {/* Header */}
