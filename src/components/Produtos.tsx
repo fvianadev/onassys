@@ -876,16 +876,17 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
                                         onChange={v => handleUpdateRecipeRow(idx, { material_id: v })}
                                         options={store.materiais.filter(m => !usedIds.includes(m.id))
                                           .map(m => ({value: m.id, label: `${m.nome} (${store.unidadeSigla(m.unidade_id)})`}))}
-                                        placeholder="Selecione um ingrediente"
-                                        className="w-full" />
+                                        placeholder="Selecione"
+                                        className="w-full"
+                                        size="sm" />
                                     </td>
                                     <td className="px-1.5 py-1">
-                                      <div className="flex items-center h-9 border border-amber-200 dark:border-[#2d1e0d] rounded overflow-hidden">
+                                      <div className="flex items-center h-8 border border-amber-200 dark:border-[#2d1e0d] rounded overflow-hidden">
                                         <input type="number" step="0.001" min="0.001" placeholder="0,500"
                                           value={item.quantidade_necessaria}
                                           onChange={(e) => handleUpdateRecipeRow(idx, { quantidade_necessaria: Number(e.target.value) })}
                                           {...useSmartArrowKeys(item.quantidade_necessaria, (v) => handleUpdateRecipeRow(idx, { quantidade_necessaria: v }), 0.001)}
-                                          className="w-full px-2 py-1 focus:outline-none font-mono text-xs bg-white dark:bg-[#1a1109] text-amber-950 dark:text-amber-100" required />
+                                          className="w-full px-2 py-1 focus:outline-none font-mono text-[10px] bg-white dark:bg-[#1a1109] text-amber-950 dark:text-amber-100" required />
                                         <span className="bg-amber-50 dark:bg-amber-950/40 px-1.5 py-1 text-[9px] font-bold text-amber-900 dark:text-amber-200 font-mono whitespace-nowrap">
                                           {store.unidadeSigla(item.unidade_id)}
                                         </span>
@@ -917,23 +918,24 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
                           {recipeItems.map((item, idx) => {
                             const materialRef = store.materiais.find(m => m.id === item.material_id);
                             return (
-                              <div key={idx} className="bg-orange-50/15 dark:bg-[#1c140c]/30 p-2.5 rounded-lg border border-amber-100/50 dark:border-[#2d1e0d]/50 space-y-2">
+                              <div key={idx} className="bg-orange-50/15 dark:bg-[#1c140c]/30 p-2 rounded-lg border border-amber-100/50 dark:border-[#2d1e0d]/50 space-y-1.5">
                                 <SelectSearch value={item.material_id}
                                   onChange={v => handleUpdateRecipeRow(idx, { material_id: v })}
                                   options={store.materiais.filter(m => {
                                     const usedIds = recipeItems.filter((_, i) => i !== idx).map(r => r.material_id);
                                     return !usedIds.includes(m.id);
                                   }).map(m => ({value: m.id, label: `${m.nome} (${store.unidadeSigla(m.unidade_id)})`}))}
-                                  placeholder="Selecione um ingrediente"
-                                  className="w-full" />
+                                  placeholder="Selecione"
+                                  className="w-full"
+                                  size="sm" />
                                 <div className="flex items-center gap-2">
                                   <div className="flex-1 flex items-center border border-amber-200 dark:border-[#2d1e0d] rounded overflow-hidden">
                                     <input type="number" step="0.001" min="0.001" placeholder="0,500"
                                       value={item.quantidade_necessaria}
                                       onChange={(e) => handleUpdateRecipeRow(idx, { quantidade_necessaria: Number(e.target.value) })}
                                       {...useSmartArrowKeys(item.quantidade_necessaria, (v) => handleUpdateRecipeRow(idx, { quantidade_necessaria: v }), 0.001)}
-                                      className="w-full p-1.5 focus:outline-none font-mono text-xs bg-white dark:bg-[#1a1109] text-amber-950 dark:text-amber-100" required />
-                                    <span className="bg-amber-50 dark:bg-amber-950/40 px-2 py-1.5 text-[10px] font-bold text-amber-900 dark:text-amber-200 font-mono whitespace-nowrap">
+                                      className="w-full px-2 py-1 focus:outline-none font-mono text-[10px] bg-white dark:bg-[#1a1109] text-amber-950 dark:text-amber-100" required />
+                                    <span className="bg-amber-50 dark:bg-amber-950/40 px-1.5 py-1 text-[9px] font-bold text-amber-900 dark:text-amber-200 font-mono whitespace-nowrap">
                                       {store.unidadeSigla(item.unidade_id)}
                                     </span>
                                   </div>
