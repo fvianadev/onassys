@@ -340,6 +340,7 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
         finalImagem = imagem;
       }
 
+      store.startBatch();
       await store.updateProduto(editId, {
         nome,
         categoria_id: categoriaId,
@@ -362,7 +363,9 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
           unidade_id: item.unidade_id
         });
       }
+      store.endBatch();
     } else {
+      store.startBatch();
       const prod = await store.addProduto({
         nome,
         categoria_id: categoriaId,
@@ -388,6 +391,7 @@ export default function Produtos({ store, onUpdate }: ProdutosProps) {
         const url = await uploadProdutoImage(compressedBlobRef.current, prod.id);
         if (url) await store.updateProduto(prod.id, { imagem: url });
       }
+      store.endBatch();
     }
 
     cleanupImagePreview();

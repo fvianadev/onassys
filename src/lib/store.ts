@@ -41,6 +41,8 @@ export class MiniFactoryStore {
   errorType: 'network' | 'server' | null = null;
   dadosEmpresa: DadosEmpresa | null = null;
   private onUpdateCallbacks: (() => void)[] = [];
+  private batching = false;
+  private batchDirty = false;
 
   constructor() {
     this.loadData();
@@ -51,7 +53,10 @@ export class MiniFactoryStore {
     return () => { this.onUpdateCallbacks = this.onUpdateCallbacks.filter(cb => cb !== callback); };
   }
 
-  private notify() { this.onUpdateCallbacks.forEach(cb => cb()); }
+  private notify() { if (this.batching) { this.batchDirty = true; return; } this.onUpdateCallbacks.forEach(cb => cb()); }
+
+  startBatch() { this.batching = true; this.batchDirty = false; }
+  endBatch() { this.batching = false; if (this.batchDirty) { this.recalcularCustosProdutos(); this.onUpdateCallbacks.forEach(cb => cb()); } }
 
   clearError() { this.error = null; this.errorType = null; this.notify(); }
 
