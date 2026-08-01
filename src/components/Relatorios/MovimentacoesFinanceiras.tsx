@@ -64,11 +64,11 @@ export default function MovimentacoesFinanceiras({ store, isOpen, onClose }: Mov
       store.categoriaFinanceiroNome(l.categoria_id),
       l.descricao || '',
       pagamentoLabel[l.forma_pagamento || ''] || l.forma_pagamento || '',
-      (l.tipo === 'receita' ? '' : '-') + l.valor.toFixed(2),
+      (l.tipo === 'receita' ? '' : '-') + l.valor.toFixed(2).replace('.', ','),
     ]);
-    rows.push(['', '', '', '', 'TOTAL RECEITAS', totalReceitas.toFixed(2)]);
-    rows.push(['', '', '', '', 'TOTAL DESPESAS', totalDespesas.toFixed(2)]);
-    rows.push(['', '', '', '', 'SALDO', saldoTotal.toFixed(2)]);
+    rows.push(['', '', '', '', 'TOTAL RECEITAS', totalReceitas.toFixed(2).replace('.', ',')]);
+    rows.push(['', '', '', '', 'TOTAL DESPESAS', totalDespesas.toFixed(2).replace('.', ',')]);
+    rows.push(['', '', '', '', 'SALDO', saldoTotal.toFixed(2).replace('.', ',')]);
     const csv = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

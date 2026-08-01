@@ -113,6 +113,20 @@ export interface FichaTecnicaItem {
   unidade_id: number;
 }
 
+export interface IngredienteReceita {
+  materialId: string;
+  qtdTotal: number;
+  unidadeId: number;
+}
+
+export interface ReceitaOriginal {
+  produtoNome: string;
+  unidadeId: number;
+  rende: number;
+  uniMedida: number;
+  ingredientes: IngredienteReceita[];
+}
+
 export interface EstoqueProduto {
   id: string;
   produto_id: string;

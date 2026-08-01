@@ -77,9 +77,9 @@ export default function DesempenhoProdutos({ store, isOpen, onClose }: Desempenh
       r.produto.nome,
       store.categoriaNome(r.produto.categoria_id),
       r.qtdVendida,
-      r.receitaTotal.toFixed(2),
-      r.custoTotal.toFixed(2),
-      r.lucroBruto.toFixed(2),
+      r.receitaTotal.toFixed(2).replace('.', ','),
+      r.custoTotal.toFixed(2).replace('.', ','),
+      r.lucroBruto.toFixed(2).replace('.', ','),
       r.margem.toFixed(1),
     ].join(','));
     const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');

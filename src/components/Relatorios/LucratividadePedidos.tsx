@@ -95,11 +95,11 @@ export default function LucratividadePedidos({ store, isOpen, onClose }: Lucrati
       r.cliente,
       r.data,
       r.status,
-      r.precoTotal.toFixed(2),
-      r.custo.toFixed(2),
-      r.totalPago.toFixed(2),
-      r.pendente.toFixed(2),
-      r.lucroAtual.toFixed(2),
+      r.precoTotal.toFixed(2).replace('.', ','),
+      r.custo.toFixed(2).replace('.', ','),
+      r.totalPago.toFixed(2).replace('.', ','),
+      r.pendente.toFixed(2).replace('.', ','),
+      r.lucroAtual.toFixed(2).replace('.', ','),
     ].join(','));
     const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

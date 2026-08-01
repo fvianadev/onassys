@@ -157,15 +157,15 @@ export default function BalancetePeriodo({ store, isOpen, onClose }: BalancetePe
     rows.push('CATEGORIA,VALOR');
     rows.push('--- RECEITAS ---,');
     for (const g of receitasPorCategoria) {
-      rows.push(`${g.categoriaNome},${g.total.toFixed(2)}`);
+      rows.push(`${g.categoriaNome},${g.total.toFixed(2).replace('.', ',')}`);
     }
-    rows.push(`Subtotal Receitas,${totalReceitas.toFixed(2)}`);
+    rows.push(`Subtotal Receitas,${totalReceitas.toFixed(2).replace('.', ',')}`);
     rows.push('--- DESPESAS ---,');
     for (const g of despesasPorCategoria) {
-      rows.push(`${g.categoriaNome},${g.total.toFixed(2)}`);
+      rows.push(`${g.categoriaNome},${g.total.toFixed(2).replace('.', ',')}`);
     }
-    rows.push(`Subtotal Despesas,${totalDespesas.toFixed(2)}`);
-    rows.push(`RESULTADO LÍQUIDO,${resultadoLiquido.toFixed(2)}`);
+    rows.push(`Subtotal Despesas,${totalDespesas.toFixed(2).replace('.', ',')}`);
+    rows.push(`RESULTADO LÍQUIDO,${resultadoLiquido.toFixed(2).replace('.', ',')}`);
     const csv = '\uFEFF' + rows.join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

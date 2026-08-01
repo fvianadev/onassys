@@ -9,6 +9,7 @@ import Clientes from './components/Clientes';
 import Fornecedores from './components/Fornecedores';
 import Pedidos from './components/Pedidos';
 import Caixa from './components/Caixa';
+import GeradorProdutos from './components/GeradorProdutos';
 import SetupInstructions from './components/SetupInstructions';
 import Login from './components/Login';
 import AddAdmin from './components/AddAdmin';
@@ -50,7 +51,10 @@ import {
   Wifi,
   WifiOff,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  FileText,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
 type AuthScreen = 'loading' | 'setup' | 'add-admin' | 'login' | 'app';
@@ -69,9 +73,14 @@ export default function App() {
   const [updateTick, setUpdateTick] = useState(0);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [appName, setAppName] = useState(() => localStorage.getItem('appName') || 'Mini Fábrica');
-  const [currentTab, setCurrentTab] = useState<string>(() => localStorage.getItem('currentTab') || 'dashboard');
+  const [currentTab, setCurrentTab] = useState<string>(() => {
+    const saved = localStorage.getItem('currentTab');
+    if (saved === 'produtos') return 'produtos-lista';
+    return saved || 'dashboard';
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(['produtos']);
   const [caixaPreselectedId, setCaixaPreselectedId] = useState<string | null>(null);
   const newOrderTriggerRef = useRef<{ trigger: () => void }>({ trigger: () => {} });
   const newLotTriggerRef = useRef<{ trigger: () => void }>({ trigger: () => {} });
@@ -346,7 +355,10 @@ export default function App() {
                 { id: 'financeiro', label: 'Financeiro', icon: <DollarSign size={15} />, perm: 'financeiro.ver' },
                 { id: 'relatorios', label: 'Relatórios', icon: <BarChart3 size={15} />, perm: 'financeiro.ver' },
                 { id: 'materiais', label: 'Insumos', icon: <Coins size={15} />, perm: 'materiais.ver' },
-                { id: 'produtos', label: 'Produtos', icon: <Layers size={16} />, perm: 'produtos.ver' },
+                { id: 'produtos', label: 'Produtos', icon: <Layers size={16} />, perm: 'produtos.ver', children: [
+                  { id: 'produtos-lista', label: 'Lista de Produtos', icon: <Layers size={13} /> },
+                  { id: 'gerador', label: 'Gerador de Produtos', icon: <FileText size={13} /> },
+                ]},
                 { id: 'pedidos', label: 'Pedidos', icon: <ShoppingBag size={15} />, perm: 'pedidos.ver' },
                 { id: 'estoque', label: 'Estoque', icon: <Warehouse size={15} />, perm: 'estoque.ver' },
                 { id: 'clientes', label: 'Clientes', icon: <Users size={15} />, perm: 'clientes.ver' },
@@ -359,6 +371,62 @@ export default function App() {
                 }
                 return !item.perm || store.hasPermission(item.perm);
               }).map(item => {
+                const isGroup = 'children' in item && item.children;
+                if (isGroup) {
+                  const group = item as { id: string; label: string; icon: React.ReactNode; perm: string | null; children: { id: string; label: string; icon: React.ReactNode }[] };
+                  const isExpanded = expandedGroups.includes(group.id);
+                  const hasActiveChild = group.children.some(c => currentTab === c.id);
+                  return (
+                    <div key={group.id}>
+                      <button
+                        data-help={group.id}
+                        onClick={() => {
+                          setExpandedGroups(prev => 
+                            prev.includes(group.id) 
+                              ? prev.filter(id => id !== group.id)
+                              : [...prev, group.id]
+                          );
+                        }}
+                        className={`w-full flex items-center gap-2.5 lg:gap-3 px-2.5 lg:px-3 py-2 lg:py-2.5 rounded-xl text-xs font-semibold tracking-wide transition ${
+                          hasActiveChild && !isExpanded
+                            ? 'bg-amber-700/20 dark:bg-amber-600/20 text-amber-700 dark:text-amber-400 font-bold'
+                            : 'hover:bg-[#ebe2d5] dark:hover:bg-[#1e140b] text-[#5c4a37] dark:text-amber-100/70'
+                        }`}
+                      >
+                        <div className="shrink-0">{group.icon}</div>
+                        <span className="truncate flex-1 text-left">{group.label}</span>
+                        <div className="shrink-0 text-[#5c4a37]/40 dark:text-amber-100/30">
+                          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        </div>
+                      </button>
+                      {isExpanded && (
+                        <div className="ml-4 mt-0.5 space-y-0.5">
+                          {group.children.map(child => {
+                            const childActive = currentTab === child.id;
+                            return (
+                              <button
+                                key={child.id}
+                                data-help={child.id}
+                                onClick={() => {
+                                  setCurrentTab(child.id);
+                                  setIsSidebarOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-2.5 lg:gap-3 pl-4 lg:pl-5 pr-2.5 lg:pr-3 py-1.5 lg:py-2 rounded-xl text-xs font-semibold tracking-wide transition ${
+                                  childActive 
+                                    ? 'bg-amber-700 dark:bg-amber-600 text-white font-bold shadow-sm' 
+                                    : 'hover:bg-[#ebe2d5] dark:hover:bg-[#1e140b] text-[#5c4a37] dark:text-amber-100/70'
+                                }`}
+                              >
+                                <div className="shrink-0">{child.icon}</div>
+                                <span className="truncate">{child.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
                 const active = currentTab === item.id;
                 return (
                   <button
@@ -472,7 +540,10 @@ export default function App() {
                 { id: 'clientes', label: 'Clientes', icon: <Users size={16} />, perm: 'clientes.ver' },
                 { id: 'fornecedores', label: 'Fornecedores', icon: <Building size={16} />, perm: 'fornecedores.ver' },
                 { id: 'financeiro', label: 'Financeiro', icon: <DollarSign size={16} />, perm: 'financeiro.ver' },
-                { id: 'produtos', label: 'Produtos', icon: <Layers size={16} />, perm: 'produtos.ver' },
+                { id: 'produtos', label: 'Produtos', icon: <Layers size={16} />, perm: 'produtos.ver', children: [
+                  { id: 'produtos-lista', label: 'Lista de Produtos', icon: <Layers size={13} /> },
+                  { id: 'gerador', label: 'Gerador de Produtos', icon: <FileText size={13} /> },
+                ]},
                 { id: 'usuarios', label: 'Usuários', icon: <Shield size={16} />, perm: 'usuarios.ver' },
                 { id: 'config', label: 'Configurações', icon: <Settings size={16} />, perm: 'config.editar' },
               ].filter(item => {
@@ -481,6 +552,62 @@ export default function App() {
                 }
                 return !item.perm || store.hasPermission(item.perm);
               }).map(item => {
+                const isGroup = 'children' in item && item.children;
+                if (isGroup) {
+                  const group = item as { id: string; label: string; icon: React.ReactNode; perm: string | null; children: { id: string; label: string; icon: React.ReactNode }[] };
+                  const isExpanded = expandedGroups.includes(group.id);
+                  const hasActiveChild = group.children.some(c => currentTab === c.id);
+                  return (
+                    <div key={group.id}>
+                      <button
+                        data-help={group.id}
+                        onClick={() => {
+                          setExpandedGroups(prev => 
+                            prev.includes(group.id) 
+                              ? prev.filter(id => id !== group.id)
+                              : [...prev, group.id]
+                          );
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition ${
+                          hasActiveChild && !isExpanded
+                            ? 'bg-amber-700/20 dark:bg-amber-600/20 text-amber-700 dark:text-amber-400 font-bold'
+                            : 'hover:bg-[#ebe2d5] dark:hover:bg-[#1e140b] text-[#5c4a37] dark:text-amber-100/70'
+                        }`}
+                      >
+                        <div className="shrink-0">{group.icon}</div>
+                        <span className="truncate flex-1 text-left">{group.label}</span>
+                        <div className="shrink-0 text-[#5c4a37]/40 dark:text-amber-100/30">
+                          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        </div>
+                      </button>
+                      {isExpanded && (
+                        <div className="ml-4 mt-0.5 space-y-0.5">
+                          {group.children.map(child => {
+                            const childActive = currentTab === child.id;
+                            return (
+                              <button
+                                key={child.id}
+                                data-help={child.id}
+                                onClick={() => {
+                                  setCurrentTab(child.id);
+                                  setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-2.5 pl-4 pr-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition ${
+                                  childActive 
+                                    ? 'bg-amber-700 dark:bg-amber-600 text-white font-bold shadow-sm' 
+                                    : 'hover:bg-[#ebe2d5] dark:hover:bg-[#1e140b] text-[#5c4a37] dark:text-amber-100/70'
+                                }`}
+                              >
+                                <div className="shrink-0">{child.icon}</div>
+                                <span className="truncate">{child.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
                 const active = currentTab === item.id;
                 return (
                   <button
@@ -566,8 +693,12 @@ export default function App() {
           <Materiais store={store} onUpdate={() => setUpdateTick(t => t + 1)} />
         )}
 
-        {currentTab === 'produtos' && store.hasPermission('produtos.ver') && (
+        {currentTab === 'produtos-lista' && store.hasPermission('produtos.ver') && (
           <Produtos store={store} onUpdate={() => setUpdateTick(t => t + 1)} />
+        )}
+
+        {currentTab === 'gerador' && store.hasPermission('produtos.ver') && (
+          <GeradorProdutos store={store} onBack={() => setCurrentTab('produtos-lista')} onUpdate={() => setUpdateTick(t => t + 1)} />
         )}
 
         {currentTab === 'estoque' && store.hasPermission('estoque.ver') && (

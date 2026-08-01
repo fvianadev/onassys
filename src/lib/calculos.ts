@@ -226,3 +226,108 @@ export function analisarEstoqueParaPedido(
     resumoFaltasMateriais,
   };
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Gerador de Fichas Técnicas
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Calcula o DIVISOR = RENDE / UNI(CT)
+ * Ex: Rende 310, UNI=100 → Divisor = 3,10
+ */
+export function calcularDivisor(rende: number, uniMedida: number): number {
+  if (uniMedida <= 0) return 0;
+  return rende / uniMedida;
+}
+
+/**
+ * Escala uma quantidade pela fórmula: qtdTotal / divisor
+ * Ex: 1,297 kg / 3,10 = 0,418 kg por cento
+ */
+export function escalarReceita(qtdTotal: number, divisor: number): number {
+  if (divisor <= 0) return 0;
+  return qtdTotal / divisor;
+}
+
+/**
+ * Calcula o custo total da receita original (VL TOTAL de cada ingrediente)
+ */
+export function calcularCustoReceitaOriginal(
+  ingredientes: { qtdTotal: number; unidadeId: number; materialId: string }[],
+  materiais: Material[],
+  unidades: Unidade[]
+): number {
+  let custoTotal = 0;
+  for (const ing of ingredientes) {
+    const mat = materiais.find(m => m.id === ing.materialId);
+    if (mat) {
+      const qtdNormalizada = normalizarQuantidade(ing.qtdTotal, ing.unidadeId, mat.unidade_id, unidades);
+      custoTotal += qtdNormalizada * mat.custo_unitario;
+    }
+  }
+  return Number(custoTotal.toFixed(2));
+}
+
+/**
+ * Calcula o custo por unidade de medida (por cento, por dúzia, etc.)
+ * Retorna o custo total da receita escalada para UNI(CT) unidades
+ */
+export function calcularCustoReceitaEscala(
+  ingredientes: { qtdTotal: number; unidadeId: number; materialId: string }[],
+  materiais: Material[],
+  unidades: Unidade[],
+  divisor: number
+): { porUnidade: number; total: number } {
+  if (divisor <= 0) return { porUnidade: 0, total: 0 };
+
+  let custoTotal = 0;
+  for (const ing of ingredientes) {
+    const mat = materiais.find(m => m.id === ing.materialId);
+    if (mat) {
+      const qtdNormalizada = normalizarQuantidade(ing.qtdTotal, ing.unidadeId, mat.unidade_id, unidades);
+      const qtdEscalada = qtdNormalizada / divisor;
+      custoTotal += qtdEscalada * mat.custo_unitario;
+    }
+  }
+
+  const total = Number(custoTotal.toFixed(2));
+  return { porUnidade: total, total };
+}
+
+/**
+ * Gera dados da ficha técnica escalada (para preview e para salvar)
+ * Retorna cada ingrediente com: materialId, qtdEscalada, unidadeId, custoUnitario, custoTotal
+ */
+export function gerarFichaTecnicaEscala(
+  ingredientes: { qtdTotal: number; unidadeId: number; materialId: string }[],
+  materiais: Material[],
+  unidades: Unidade[],
+  divisor: number
+): {
+  materialId: string;
+  materialNome: string;
+  qtdOriginal: number;
+  unidadeSigla: string;
+  custoUnitario: number;
+  qtdEscalada: number;
+  custoTotal: number;
+}[] {
+  return ingredientes.map(ing => {
+    const mat = materiais.find(m => m.id === ing.materialId);
+    const unidade = unidades.find(u => u.id === ing.unidadeId);
+    const qtdNormalizada = mat ? normalizarQuantidade(ing.qtdTotal, ing.unidadeId, mat.unidade_id, unidades) : ing.qtdTotal;
+    const qtdEscalada = divisor > 0 ? qtdNormalizada / divisor : 0;
+    const custoUnitario = mat?.custo_unitario || 0;
+    const custoTotal = qtdEscalada * custoUnitario;
+
+    return {
+      materialId: ing.materialId,
+      materialNome: mat?.nome || '',
+      qtdOriginal: ing.qtdTotal,
+      unidadeSigla: unidade?.sigla || '',
+      custoUnitario,
+      qtdEscalada: Number(qtdEscalada.toFixed(3)),
+      custoTotal: Number(custoTotal.toFixed(2)),
+    };
+  });
+}

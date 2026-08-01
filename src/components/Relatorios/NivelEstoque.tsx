@@ -79,7 +79,7 @@ export default function NivelEstoque({ store, isOpen, onClose }: NivelEstoquePro
       i.qtdTotal,
       i.minima,
       i.status.label,
-      i.custoTotal.toFixed(2),
+      i.custoTotal.toFixed(2).replace('.', ','),
     ].join(','));
     const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

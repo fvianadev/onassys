@@ -76,8 +76,8 @@ export default function RankingClientes({ store, isOpen, onClose }: RankingClien
       r.cliente.telefone || '—',
       store.tipoClienteNome(r.cliente.tipo_id),
       r.qtdPedidos,
-      r.totalGasto.toFixed(2),
-      r.ticketMedio.toFixed(2),
+      r.totalGasto.toFixed(2).replace('.', ','),
+      r.ticketMedio.toFixed(2).replace('.', ','),
       new Date(r.ultimoPedido).toLocaleDateString('pt-BR'),
     ].join(','));
     const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
